@@ -5,7 +5,7 @@ module.exports = (BotClient, functions) => {
     for (const file of command_files) {
         const command = require(`../commands/${file}`)
         if (command.name) {
-            BotClient.commands.set(command.name, command)
+            BotClient.commands.set(command.name, command) 
         } else {
             continue;
         }

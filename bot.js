@@ -1,8 +1,8 @@
 async function start() {
-    process.on('unhandledRejection', error => {
-        console.error('Unhandled promise rejection:', error);
-    });
     const functions = require('./functions');
+    process.on('unhandledRejection', error => {
+        console.error(functions.getTime() + `[${global.shardId}][ERROR] `, error);
+    });
     require('dotenv').config();
     global.prefix = process.env.PREFIX;
     const token = process.env.TOKEN;

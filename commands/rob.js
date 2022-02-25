@@ -39,23 +39,60 @@ module.exports = {
         const success = Math.round(Math.random());
         const percent = (Math.floor(Math.random() * 100 + 1)) / 100;
         const checkFCS = await functions.SQL("SELECT id FROM active_items WHERE user_id=? AND item_id=18", [robber.id])
-        if(checkFCS.length) {
+        if (checkFCS.length) {
             return message.reply("You were knocked out. You need to get back on your feet first lmao")
         }
         const checkHardener = await functions.SQL("SELECT id FROM active_items WHERE user_id=? AND item_id=2", [victim.id])
         if (checkHardener.length) {
             await functions.SQL("DELETE FROM active_items WHERE item_id=2 AND user_id=?", [victim.id])
+            const dm = new MessageEmbed()
+                .setTitle(` ${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${message.guild.name} but failed due to you having Soap Hardener equipped!`)
+                .setColor("#ff00e4")
+                .setDescription(`https://discord.com/channels/${user.guild.id}/${message.channel.id}/${message.id}, <#${message.channel.id}>`)
+            try {
+                await mention.createDM()
+                await mention.send({ embeds: [dm] })
+            } catch (e) {
+                null
+            }
             message.reply(`You tried to steal from **${mention.displayName}** but when you tried to lift their soap, you realized it's 69x heavier. You ended up losing **🧼500**.`)
 
             await Promise.all([functions.setPoints(mention.id, victim.points + 500), functions.setPoints(user.id, robber.points - 500)]);
             return
         }
         if (success) {
+
+            const succ_dm = new MessageEmbed()
+                .setTitle(` ${user.displayName} (${user.user.username}#${user.user.discriminator}) stole from you in ${message.guild.name}!`)
+                .setColor("#ff00e4")
+                .setDescription(`https://discord.com/channels/${user.guild.id}/${message.channel.id}/${message.id}, <#${message.channel.id}>`)
+            try {
+                await mention.createDM()
+                await mention.send({ embeds: [succ_dm] })
+            } catch (e) {
+                null
+            }
+
+
+
             const stolenAmount = Math.round(percent * victim.points);
-            message.reply(`You stole 🧼**${stolenAmount.toLocaleString()}** from **${mention.displayName}**! (${percent * 100}% of their total 🧼).`);
+            message.reply(`You stole 🧼**${stolenAmount.toLocaleString()}** from **${mention.displayName}**! (${Math.round(percent * 100)}% of their total 🧼).`);
             functions.setPoints(mention.id, victim.points - stolenAmount);
             functions.setPoints(user.id, robber.points + stolenAmount);
         } else {
+
+            const fail_dm = new MessageEmbed()
+                .setTitle(` ${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${message.guild.name} but failed!`)
+                .setColor("#ff00e4")
+                .setDescription(`https://discord.com/channels/${user.guild.id}/${message.channel.id}/${message.id}, <#${message.channel.id}>`)
+            try {
+                await mention.createDM()
+                await mention.send({ embeds: [fail_dm] })
+            } catch (e) {
+                null
+            }
+
+
             const lostAmount = Math.round(0.1 * robber.points);
             message.reply(`You tried to steal from **${mention.displayName}** but **slipped** on your soap and paid 🧼**${lostAmount.toLocaleString()}**`);
             functions.setPoints(mention.id, victim.points + lostAmount);

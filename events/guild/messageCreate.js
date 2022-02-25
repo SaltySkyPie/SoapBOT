@@ -66,7 +66,7 @@ module.exports = async (BotClient, functions, message) => {
                         if (current_time < expiration_time) {
                             const time_left = (expiration_time - current_time) / 1000;
 
-                            console.log(functions.getTime() + `[${global.shardId}][INFO] ${message.author.tag} tried to issue command ${cmd} but was on cooldown.`);
+                            console.log(functions.getTime() + `[${global.shardId}][INFO] ${message.author.tag} tried to issue command ${cmd} in ${message.guild.name} but was on cooldown.`);
                             return message.reply(`Please wait ${time_left.toFixed(1)} seconds before using "${command.name}" again.`);
                         }
                     }
@@ -78,10 +78,10 @@ module.exports = async (BotClient, functions, message) => {
                 }
                 try {
                     command.execute(message, args, BotClient, functions);
-                    console.log(functions.getTime() + `[${global.shardId}][INFO] ${message.author.tag} issued command ${cmd}. ` + `(${message})`);
+                    console.log(functions.getTime() + `[${global.shardId}][INFO] ${message.author.tag} issued command ${cmd} in ${message.guild.name}. ` + `(${message})`);
                 } catch (err) {
                     message.reply(`There was an error executing this command. (${err})`);
-                    console.error(functions.getTime() + `[${global.shardId}][ERROR] ${message.author.tag} issued command ${cmd} and returned an error: "${err}".`)
+                    console.error(functions.getTime() + `[${global.shardId}][ERROR] ${message.author.tag} issued command ${cmd} in ${message.guild.name} and returned an error: "${err}".`)
                 }
             }
         }

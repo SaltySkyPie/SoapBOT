@@ -41,7 +41,7 @@ module.exports = {
             } else {
                 joiners.push(i.user.id)
             }
-            const earned = Math.floor(Math.random() * 1000) + 100;
+            const earned = Math.floor(Math.random() * 900) + 100;
             await functions.setPoints(i.user.id, (await functions.getPoints(i.user.id)) + earned)
             message.channel.send(`**${i.member.displayName}** joined the **SOAP PARTY** and obtained **🧼${earned}**!`)
             joined++
