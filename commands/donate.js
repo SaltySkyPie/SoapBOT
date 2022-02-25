@@ -9,7 +9,7 @@ module.exports = {
         const e = new MessageEmbed()
         .setTitle("Donate to Soap BOT!")
         .setDescription("All the donations are going into Soap BOT development! Donations are optional and are always appreciated.\nhttps://buymeacoffee.com/SaltySkyPie")
-        .setThumbnail(BotClient.user.avatarURL())
+        .setThumbnail(BotClient.user.avatarURL()).setColor("#ff00e4")
 
         message.channel.send({embeds: [e]})
     }
