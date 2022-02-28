@@ -8,10 +8,10 @@ module.exports = {
     async execute(message, args, BotClient, functions) {
         //return message.reply("Temporarily disabled");
 
-        await functions.setPoints(message.author.id, (await functions.getPoints(message.author.id) + 2500))
+        await functions.setPoints(message.author.id, (await functions.getPoints(message.author.id) + 10000))
         const DailyEmbed = new MessageEmbed()
             .setTitle(`Take your daily soapy reward!`)
-            .setDescription(`You recieved 🧼**2,500**`)
+            .setDescription(`You recieved 🧼**10,000**\nMake sure to check out https://soapbot.net and vote for Soap BOT for some additional goodies!`)
             .setColor("#ff00e4");
 
         message.channel.send({ embeds: [DailyEmbed] });
