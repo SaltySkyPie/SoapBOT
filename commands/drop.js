@@ -50,7 +50,7 @@ module.exports = {
         let image = result[0].link;
         const DropEmbed = new MessageEmbed()
             .setTitle("Oh no!")
-            .setDescription(`**${mention.displayName}** dropped the soap! Type "${global.prefix}pickup" to pick up the soap!\nYou have 5 minutes to pick up your soap!`)
+            .setDescription(`**${mention.displayName}** dropped the soap! Click the button to pick up the soap!\nYou have 5 minutes to pick up your soap!`)
             .setImage(image)
             .setColor("#ff00e4");
 

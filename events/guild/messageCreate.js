@@ -39,12 +39,9 @@ module.exports = async (BotClient, functions, message) => {
 
                 await functions.checkUserCreate(message.author.id),
 
-                await functions.SQL("DELETE FROM active_items WHERE expiration_date<=?", [new Date(Date.now()).toISOString().slice(0, 19).replace('T', ' ')])
+                await functions.SQL("DELETE FROM active_items WHERE expiration_date<=?", [functions.getUTCDate()])
 
             ])
-            //await addMent()
-            //await functions.checkUserCreate(message.author.id)
-            //await functions.SQL("DELETE FROM active_items WHERE expiration_date<=?", [new Date(Date.now()).toISOString().slice(0, 19).replace('T', ' ')])
             const user = await functions.getUserData(message.author.id)
             const args = message.content.slice(prefix.length).split(/ +/);
             const cmd = args.shift().toLowerCase();

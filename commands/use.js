@@ -40,8 +40,8 @@ module.exports = {
                             await functions.SQL("DELETE FROM active_items WHERE user_id=? AND item_id=?", [mention.id, item.id])
                         }
                     }
-                    const date = new Date(Date.now() + (item.active_duration * 1000));
-                    functions.SQL("INSERT INTO active_items (user_id, item_id, expiration_date) VALUES (?,?,?)", [mention.id, item.id, date.toISOString().slice(0, 19).replace('T', ' ')])
+                    const date = functions.getUTCDate(item.active_duration * 1000);
+                    functions.SQL("INSERT INTO active_items (user_id, item_id, expiration_date) VALUES (?,?,?)", [mention.id, item.id, date])
 
 
 
@@ -71,8 +71,8 @@ module.exports = {
                         await functions.SQL("DELETE FROM active_items WHERE user_id=? AND item_id=?", [user.id, item.id])
                     }
                 }
-                const date = new Date(Date.now() + (item.active_duration * 1000));
-                functions.SQL("INSERT INTO active_items (user_id, item_id, expiration_date) VALUES (?,?,?)", [user.id, item.id, date.toISOString().slice(0, 19).replace('T', ' ')])
+                const date = functions.getUTCDate(item.active_duration * 1000)/*new Date(Date.now() + (item.active_duration * 1000));*/
+                functions.SQL("INSERT INTO active_items (user_id, item_id, expiration_date) VALUES (?,?,?)", [user.id, item.id, date])
             }
 
 

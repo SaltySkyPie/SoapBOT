@@ -33,11 +33,19 @@ require('dotenv').config();
 }*/
 
 
+function getUTCDate(secondsToAdd = 0) {
+    var today = new Date(Date.now() + secondsToAdd);
+    //var date = today.getDate() + ". " + (today.getMonth() + 1) + ". " + today.getFullYear();
+    var date = today.getUTCFullYear() + "-" + (today.getUTCMonth() + 1) + "-" + today.getUTCDate()
+    var time = today.getUTCHours() + ":" + today.getUTCMinutes() + ":" + today.getUTCSeconds();
+    var dateTime = date + ' ' + time;
+    return dateTime;
+}
 
 function getTime() {
     var today = new Date();
-    var date = today.getDate() + ". " + (today.getMonth() + 1) + ". " + today.getFullYear();
-    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    var date = today.getUTCDate() + ". " + (today.getUTCMonth() + 1) + ". " + today.getUTCFullYear();
+    var time = today.getUTCHours() + ":" + today.getUTCMinutes() + ":" + today.getUTCSeconds();
     var dateTime = '[' + date + ' ' + time + ']';
     return dateTime;
 }
@@ -293,4 +301,4 @@ async function getItemByName(name) {
     }
 }
 
-module.exports = { decodeNumber, getTime, SQL, getItemByName, checkUserCreate, getUserData, getPoints, setPoints, getBank, setBank, setMaxBank, getSoapstatus, setSoapstatus, getPerms, ban, checkBan, unban, getServerCount };
+module.exports = { getUTCDate,decodeNumber, getTime, SQL, getItemByName, checkUserCreate, getUserData, getPoints, setPoints, getBank, setBank, setMaxBank, getSoapstatus, setSoapstatus, getPerms, ban, checkBan, unban, getServerCount };

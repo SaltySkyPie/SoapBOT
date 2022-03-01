@@ -17,12 +17,12 @@ module.exports = {
         }
 
         const [user1, user2] = await Promise.all([functions.getUserData(user.id), functions.getUserData(mention.id)])
-        await functions.SQL("DELETE FROM love WHERE expires<=?", [new Date(Date.now()).toISOString().slice(0, 19).replace('T', ' ')])
+        await functions.SQL("DELETE FROM love WHERE expires<=?", [functions.getUTCDate()])
         const check = await functions.SQL("SELECT id FROM love WHERE (user1_id=? AND user2_id=?) OR (user1_id=? AND user2_id=?)", [user1.id, user2.id, user2.id, user1.id])
         if (!check || !check.length) {
             percentage = Math.round(Math.random() * 100);
-            const date = new Date(Date.now() + (4 * 1000 * 60 * 60));
-            await functions.SQL("INSERT INTO love (rating, user1_id, user2_id, expires) VALUES (?,?,?,?)", [percentage, user1.id, user2.id, date.toISOString().slice(0, 19).replace('T', ' ')])
+            const date = functions.getUTCDate(4 * 1000 * 60 * 60);
+            await functions.SQL("INSERT INTO love (rating, user1_id, user2_id, expires) VALUES (?,?,?,?)", [percentage, user1.id, user2.id, date])
         } else {
             percentage = await functions.SQL("SELECT rating FROM love WHERE (user1_id=? AND user2_id=?) OR (user1_id=? AND user2_id=?)", [user1.id, user2.id, user2.id, user1.id])
             percentage = percentage[0].rating
