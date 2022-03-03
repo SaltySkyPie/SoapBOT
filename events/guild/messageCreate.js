@@ -4,6 +4,7 @@ const cooldowns = new Map();
 
 module.exports = async (BotClient, functions, message) => {
     try {
+        console.log(`${functions.getTime()}[${global.shardId}][CHAT] (${message.guild.name}) ${message.author.tag}: ${message}`)
         const prefix = global.prefix;
         if (!message.content.toLowerCase().startsWith(prefix) || message.author.bot) { return; } else {
             if (!message.guild.me.permissionsIn(message.channel).has(['SEND_MESSAGES'])) {
