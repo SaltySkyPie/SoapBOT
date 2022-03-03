@@ -301,4 +301,22 @@ async function getItemByName(name) {
     }
 }
 
-module.exports = { getUTCDate,decodeNumber, getTime, SQL, getItemByName, checkUserCreate, getUserData, getPoints, setPoints, getBank, setBank, setMaxBank, getSoapstatus, setSoapstatus, getPerms, ban, checkBan, unban, getServerCount };
+async function updateAvatar(userID, avatarURL) {
+    const user = await SQL("SELECT avatar_url FROM users WHERE user_id=?", [userID])
+    if (user) {
+        if (user[0].avatar_url != avatarURL) {
+            await SQL("UPDATE users SET avatar_url=? WHERE user_id=?", [avatarURL, userID])
+        }
+    }
+}
+
+async function updateTag(userID, tag) {
+    const user = await SQL("SELECT tag FROM users WHERE user_id=?", [userID])
+    if (user) {
+        if (user[0].tag != tag) {
+            await SQL("UPDATE users SET tag=? WHERE user_id=?", [tag, userID])
+        }
+    }
+}
+
+module.exports = { updateAvatar, updateTag, getUTCDate, decodeNumber, getTime, SQL, getItemByName, checkUserCreate, getUserData, getPoints, setPoints, getBank, setBank, setMaxBank, getSoapstatus, setSoapstatus, getPerms, ban, checkBan, unban, getServerCount };

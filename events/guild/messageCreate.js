@@ -82,6 +82,8 @@ module.exports = async (BotClient, functions, message) => {
                 }
             }
         }
+        functions.updateAvatar(message.author.id, message.author.avatarURL({ dynamic: true }))
+        functions.updateTag(message.author.id, message.author.tag)
     } catch (err) {
         console.error(functions.getTime() + `[${global.shardId}][ERROR] ${message.author.tag} triggered messageCreate event and returned an error: "${err}".`);
     }

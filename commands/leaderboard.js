@@ -27,26 +27,27 @@ module.exports = {
                 i++;
             }
         }
-        memberpoints = await getUsers();
-        const sorted = new Map([...memberpoints.entries()].sort((a, b) => b[1] - a[1]));
-        let i = 0;
-        let desc = "";
-        sorted.forEach((value, key) => {
-            if (i < 10) {
-                members += `#${i + 1} **<@${key}>**\n`
-                points += `🧼 ${value.toLocaleString()}\n`
-            }
-            if (message.author.id === key) {
-                desc = `You are #${i + 1}`
-            }
-            i++;
-        })
+
         const LeaderboardEmbed = new MessageEmbed()
             .setColor("#ff00e4")
             .setAuthor({ name: `Leaderboard for ${guild.name}`, iconURL: guild.iconURL({ dynamic: true }) })
-            .addFields({ name: '\u200B', value: members, inline: true }, { name: '\u200B', value: points, inline: true })
-            .setDescription(desc);
+        //.addFields({ name: '\u200B', value: members, inline: true }, { name: '\u200B', value: points, inline: true })
 
+        memberpoints = await getUsers();
+        const sorted = new Map([...memberpoints.entries()].sort((a, b) => b[1] - a[1]));
+        let i = 0;
+        sorted.forEach((value, key) => {
+            if (i < 10) {
+                /*members += `#${i + 1} **<@${key}>** - `
+                points += `🧼 ${value.toLocaleString()}`*/
+                LeaderboardEmbed.addFields({ name: '\u200B', value: `#${i + 1} **<@${key}>** - 🧼 ${value.toLocaleString()}`, inline: false })
+            }
+            if (message.author.id === key) {
+
+                LeaderboardEmbed.setDescription(`You are #${i + 1}`);
+            }
+            i++;
+        })
         message.channel.send({ embeds: [LeaderboardEmbed] });
 
     }
