@@ -21,8 +21,8 @@ module.exports = (BotClient, functions) => {
                 console.log(`${functions.getTime()}[${global.shardId}][INFO] Started refreshing application (/) commands.`);
 
                 await rest.put(
-                    Routes.applicationGuildCommands('908817514480406628', '910660654443135026'),
-                    //Routes.applicationCommands('908817514480406628'),
+                    //Routes.applicationGuildCommands('908817514480406628', '910660654443135026'),
+                    Routes.applicationCommands('908817514480406628'),
                     { body: commands },
                 );
 
