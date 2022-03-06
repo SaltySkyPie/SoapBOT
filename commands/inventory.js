@@ -1,10 +1,13 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'inventory',
     aliases: ['inv'],
-    cooldown: 3,
-    description: 'Basic inventory command',
+    slash: new SlashCommandBuilder()
+        .setName('inventory')
+        .setDescription('Shows inventory')
+        .addUserOption(option => option.setName('user').setDescription('User').setRequired(false)),
     async execute(message, args, BotClient, functions) {
         if (message.mentions.members.size > 1 || args.length > 1) {
             return message.reply("You can only mention one person donkey.");
@@ -43,7 +46,13 @@ module.exports = {
                 .setLabel("▶")
                 .setStyle("SECONDARY")
         );
-        const reply = await message.channel.send({ embeds: [ShopEmbed], components: [row] });
+        let r
+        if (message.isInteraction) {
+            r = await message.reply({ embeds: [ShopEmbed], components: [row], fetchReply: true });
+        } else {
+            r = await message.reply({ embeds: [ShopEmbed], components: [row] });
+        }
+        const reply = r
 
         const collector = message.channel.createMessageComponentCollector({
             componentType: 'BUTTON',

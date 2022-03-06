@@ -1,10 +1,12 @@
 const { MessageEmbed } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'beg',
     aliases: [],
-    cooldown: 60,
-    description: 'Basic beg command',
+    slash: new SlashCommandBuilder()
+    .setName('beg')
+    .setDescription('Begs for a random amount of Soap'),
     async execute(message, args, BotClient, functions) {
 
 
@@ -16,7 +18,7 @@ module.exports = {
                 .setDescription(`Go pick up some soap instead :)`)
                 .setColor("#ff00e4");
 
-            return message.channel.send({ embeds: [BegEmbed] });
+            return message.reply({ embeds: [BegEmbed] });
         }
         result = await functions.SQL(`SELECT points FROM users WHERE user_id="${message.author.id}"`, [])
         if (result.length <= 0) {
@@ -29,6 +31,6 @@ module.exports = {
             .setDescription(`Now that you have some money go buy something!`)
             .setColor("#ff00e4");
 
-        message.channel.send({ embeds: [BegEmbed] });
+        message.reply({ embeds: [BegEmbed] });
     }
 }

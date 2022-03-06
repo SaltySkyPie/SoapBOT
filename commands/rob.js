@@ -1,10 +1,13 @@
 const { MessageEmbed } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'rob',
     aliases: ['steal'],
-    cooldown: 20,
-    description: 'Basic rob command',
+    slash: new SlashCommandBuilder()
+        .setName('rob')
+        .setDescription('Steals from a person')
+        .addUserOption(option => option.setName('victim').setDescription('Victim').setRequired(true)),
     async execute(message, args, BotClient, functions) {
 
         const user = message.member;

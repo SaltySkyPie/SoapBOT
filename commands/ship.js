@@ -1,13 +1,18 @@
 const Jimp = require('jimp')
 const { MessageAttachment } = require('discord.js')
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'ship',
     aliases: ['love', 'chip'],
-    cooldown: 0,
-    description: 'Basic ship command',
+    slash: new SlashCommandBuilder()
+        .setName('ship')
+        .setDescription('How much do you love them?')
+        .addUserOption(option => option.setName('victim').setDescription('Victim').setRequired(true)),
     async execute(message, args, BotClient, functions) {
-
+        if(message.isInteraction) {
+            message.deferReply()
+        }
         const user = message.member;
         const mention = message.mentions.members.first();
         let percentage = 0;
@@ -68,7 +73,11 @@ module.exports = {
             img_max_y)
         image.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
             const attachment = new MessageAttachment(buffer, 'love.png')
-            message.channel.send({ files: [attachment] })
+            if(message.isInteraction) {
+                message.followUp({ files: [attachment] })
+            } else {
+            message.reply({ files: [attachment] })
+            }
         })
 
 

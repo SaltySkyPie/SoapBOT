@@ -1,8 +1,11 @@
+
+const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
     name: 'ping',
     aliases: [],
-    cooldown: 0,
-    description: 'Basic ping command',
+    slash: new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('pong'),
     execute(message, args, BotClient, functions) {
         message.reply(`Pong 🏓 Latency is ${Date.now() - message.createdTimestamp}ms.`);
     }

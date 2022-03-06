@@ -1,10 +1,11 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
-
+const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
     name: 'help',
     aliases: ['?'],
-    cooldown: 3,
-    description: 'Basic help command',
+    slash: new SlashCommandBuilder()
+        .setName('help')
+        .setDescription('Shows the list of Soap BOT commands'),
     async execute(message, args, BotClient, functions) {
         let currentPage = 0;
         const count = await functions.SQL(`SELECT count(id) as count FROM commands`);
@@ -22,7 +23,7 @@ module.exports = {
             .setFooter(`Page ${currentPage + 1}/${maxPage + 1}`);
 
         items.forEach(i => {
-            ShopEmbed.addFields({ name: '\u200B', value: `**${process.env.prefix} ${i.command}**\n`, inline: true }, { name: '\u200B', value: `${i.description}\n`, inline: true },{ name: '\u200B', value: `-\n`, inline: true })
+            ShopEmbed.addFields({ name: '\u200B', value: `**${process.env.prefix} ${i.command}**\n`, inline: true }, { name: '\u200B', value: `${i.description}\n`, inline: true }, { name: '\u200B', value: `-\n`, inline: true })
         });
 
         const row = new MessageActionRow().addComponents(
@@ -35,8 +36,13 @@ module.exports = {
                 .setLabel("▶")
                 .setStyle("SECONDARY")
         );
-        const reply = await message.channel.send({ embeds: [ShopEmbed], components: [row] });
-
+        let r
+        if (message.isInteraction) {
+            r = await message.reply({ embeds: [ShopEmbed], components: [row], fetchReply: true });
+        } else {
+            r = await message.reply({ embeds: [ShopEmbed], components: [row] });
+        }
+        const reply = r
         const collector = message.channel.createMessageComponentCollector({
             componentType: 'BUTTON',
             idle: 20000
@@ -68,7 +74,7 @@ module.exports = {
                     .setFooter(`Page ${currentPage + 1}/${maxPage + 1}`);
 
                 items.forEach(i => {
-                    ShopPageEmbed.addFields({ name: '\u200B', value: `**${process.env.prefix} ${i.command}**\n`, inline: true }, { name: '\u200B', value: `${i.description}\n`, inline: true },{ name: '\u200B', value: `-\n`, inline: true })
+                    ShopPageEmbed.addFields({ name: '\u200B', value: `**${process.env.prefix} ${i.command}**\n`, inline: true }, { name: '\u200B', value: `${i.description}\n`, inline: true }, { name: '\u200B', value: `-\n`, inline: true })
                 });
                 await reply.edit({ embeds: [ShopPageEmbed] })
                 i.deferUpdate().catch()

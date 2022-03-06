@@ -1,10 +1,12 @@
 const { MessageEmbed } = require("discord.js")
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'vote',
     aliases: [],
-    cooldown: 0,
-    description: 'Basic vote command',
+    slash: new SlashCommandBuilder()
+    .setName('vote')
+    .setDescription('Vote for rewards!'),
     execute(message, args, BotClient, functions) {
         const e = new MessageEmbed()
             .setTitle("Upvote Soap BOT!")
@@ -12,6 +14,6 @@ module.exports = {
             .setThumbnail(BotClient.user.avatarURL()).setColor("#ff00e4")
             .setURL('https://soapbot.net/vote')
 
-        message.channel.send({ embeds: [e] })
+        message.reply({ embeds: [e] })
     }
 }

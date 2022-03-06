@@ -1,12 +1,14 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
     name: 'stats',
     aliases: [],
-    cooldown: 0,
-    description: 'Basic stats command',
+    slash: new SlashCommandBuilder()
+        .setName('stats')
+        .setDescription('Soap BOT stats'),
     async execute(message, args, BotClient, functions) {
 
         const [guilds, economy_wallet, economy_bank, economy_max_bank, users] = await Promise.all([
-            functions.getServerCount(BotClient).catch(() => {return "loading..."}),
+            functions.getServerCount(BotClient).catch(() => { return "loading..." }),
             functions.SQL("SELECT SUM(points) AS sumpoints FROM users"),
             functions.SQL("SELECT SUM(stash) AS sumpoints FROM users"),
             functions.SQL("SELECT SUM(max_stash) AS sumpoints FROM users"),

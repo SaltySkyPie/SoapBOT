@@ -1,10 +1,13 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'drop',
     aliases: [],
-    cooldown: 90,
-    description: 'Basic drop command',
+    slash: new SlashCommandBuilder()
+        .setName('drop')
+        .setDescription('Drop the soap!')
+        .addUserOption(option => option.setName('victim').setDescription('Victim').setRequired(true)),
     async execute(message, args, BotClient, functions) {
 
         const user = message.member;
@@ -73,7 +76,13 @@ module.exports = {
             null
         }
         await functions.setSoapstatus(mention.id, 1)
-        const reply = await message.channel.send({ embeds: [DropEmbed], components: [row] });
+        let r
+        if (message.isInteraction) {
+            r = await message.reply({ embeds: [DropEmbed], components: [row], fetchReply: true });
+        } else {
+            r = await message.reply({ embeds: [DropEmbed], components: [row] });
+        }
+        const reply = r
         /*const filter = (interaction) => {
             if (interaction.user.id === mention.id) {
                 return true

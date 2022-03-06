@@ -1,6 +1,5 @@
 const { default: Collection } = require("@discordjs/collection");
 
-const cooldowns = new Map();
 
 module.exports = async (BotClient, functions, message) => {
     try {
@@ -48,33 +47,15 @@ module.exports = async (BotClient, functions, message) => {
             const cmd = args.shift().toLowerCase();
             const command = BotClient.commands.get(cmd) || BotClient.commands.find(a => a.aliases && a.aliases.includes(cmd));
             if (command) {
-                if (!(user.permissions > 100)) {
-                    if (!cooldowns.has(command.name)) {
-                        cooldowns.set(command.name, new Collection())
-                    }
 
-
-                    const current_time = Date.now();
-                    const time_stamps = cooldowns.get(command.name);
-                    const cooldown_amount = (command.cooldown) * 1000;
-
-                    if (time_stamps.has(message.author.id)) {
-                        const expiration_time = time_stamps.get(message.author.id) + cooldown_amount;
-
-                        if (current_time < expiration_time) {
-                            const time_left = (expiration_time - current_time) / 1000;
-
-                            console.log(functions.getTime() + `[${global.shardId}][INFO] ${message.author.tag} tried to issue command ${cmd} in ${message.guild.name} but was on cooldown.`);
-                            return message.reply(`Please wait ${time_left.toFixed(1)} seconds before using "${command.name}" again.`);
-                        }
-                    }
-
-                    time_stamps.set(message.author.id, current_time)
-                    setTimeout(() => {
-                        time_stamps.delete(message.author.id, cooldown_amount);
-                    }, cooldown_amount);
+                // cooldown handle
+                const cooldown_state = await functions.cooldown(user, command.name)
+                if(cooldown_state) {
+                    return message.reply(cooldown_state)
                 }
+
                 try {
+                    message.isInteraction = false
                     command.execute(message, args, BotClient, functions);
                     console.log(functions.getTime() + `[${global.shardId}][INFO] ${message.author.tag} issued command ${cmd} in ${message.guild.name}. ` + `(${message})`);
                 } catch (err) {

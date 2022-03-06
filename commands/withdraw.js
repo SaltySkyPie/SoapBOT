@@ -1,8 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
     name: 'withdraw',
     aliases: ['with', 'wth'],
-    cooldown: 3,
-    description: 'Basic withdraw command',
+    slash: new SlashCommandBuilder()
+        .setName('withdraw')
+        .setDescription('Withdraw soap to stash')
+        .addStringOption(option => option.setName('amount').setDescription('Amount').setRequired(true)),
     async execute(message, args, BotClient, functions) {
         const user = message.member;
         const bank = await functions.getBank(user.id); // 0 = current, 1 = max

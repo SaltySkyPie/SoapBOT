@@ -1,10 +1,13 @@
 const { MessageEmbed, MessageAttachment } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'balance',
     aliases: ['bal', 'balan'],
-    cooldown: 3,
-    description: 'Basic balance command',
+    slash: new SlashCommandBuilder()
+    .setName('balance')
+    .setDescription('Shows balance')
+    .addUserOption(option => option.setName('user').setDescription('User').setRequired(false)),
     async execute(message, args, BotClient, functions) {
 
         const user = message.member;
@@ -23,7 +26,7 @@ module.exports = {
             .setColor("#ff00e4");
 
 
-        message.channel.send({ embeds: [BalanceEmbed] });
+        message.reply({ embeds: [BalanceEmbed] });
 
 
 

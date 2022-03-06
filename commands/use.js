@@ -1,10 +1,13 @@
 
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'use',
     aliases: [],
-    cooldown: 3,
-    description: 'Basic use command',
+    slash: new SlashCommandBuilder()
+        .setName('use')
+        .setDescription('Use an item from your inventory')
+        .addStringOption(option => option.setName('item').setDescription('Item name').setRequired(true)),
     async execute(message, args, BotClient, functions) {
         if (!args.length) {
             return message.reply("I mean don't get me wrong, but for this to work you need to specify an item name :)")
@@ -28,7 +31,7 @@ module.exports = {
                     if (!(msg.mentions.members.size > 0)) {
                         return message.reply("You need to tag someone...")
                     }
-                    if(msg.mentions.members.first().id == message.author.id) {
+                    if (msg.mentions.members.first().id == message.author.id) {
                         return msg.reply("Really?")
                     }
                     const mention = await functions.getUserData(msg.mentions.members.first().id)

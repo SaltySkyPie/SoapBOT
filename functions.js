@@ -2,35 +2,6 @@ const mysql = require('mysql');
 const util = require('util');
 require('dotenv').config();
 
-/*async function connectDB() {
-    return new Promise(resolve => {
-        console.log(`${getTime()}[${global.shardId}][INFO] Connecting to database on Shard ${global.shardId}.`);
-        let connection = mysql.createPool({
-            host: 'localhost',
-            user: 'Skippie',
-            password: '1@?qayWSX',
-            database: 'soapbot'
-        });
-        connection.getConnection(function (err) {
-            if (err) {
-                console.log(`${getTime()}[${global.shardId}][ERROR] Could not connect to database on Shard ${global.shardId}. (${err})`)
-                setTimeout(() => {
-                    connectDB()
-                }, 5000);
-            } else {
-                connection.on('error', (err) => {
-                    console.log(`${getTime()}[${global.shardId}][ERROR] Database disconnected on Shard ${global.shardId}. (${err})`)
-                    setTimeout(() => {
-                        connectDB()
-                    }, 5000);
-                })
-                global.db = connection;
-                console.log(`${getTime()}[${global.shardId}][INFO] Connected to database on Shard ${global.shardId}.`);
-                resolve();
-            }
-        });
-    })
-}*/
 
 
 function getUTCDate(secondsToAdd = 0) {
@@ -56,7 +27,7 @@ var connection = mysql.createPool({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_SCHEMA,
-    charset : 'utf8mb4_general_ci'
+    charset: 'utf8mb4_general_ci'
 });
 
 function SQL(str, params = []) {
@@ -320,4 +291,50 @@ async function updateTag(userID, tag) {
     }
 }
 
-module.exports = { updateAvatar, updateTag, getUTCDate, decodeNumber, getTime, SQL, getItemByName, checkUserCreate, getUserData, getPoints, setPoints, getBank, setBank, setMaxBank, getSoapstatus, setSoapstatus, getPerms, ban, checkBan, unban, getServerCount };
+async function cooldown(user, commandName) {
+    await SQL("DELETE FROM command_cooldowns WHERE expiration<=?", [getUTCDate()])
+    const command = (await SQL("SELECT * FROM commands WHERE command=?", [commandName]))[0]
+    if (!command) {
+        return false
+    }
+    const check = await SQL("SELECT expiration FROM command_cooldowns WHERE user_id=? AND command_id=?", [user.id, command.id])
+    //console.log(user, command, commandName, check)
+    if (check.length > 0) {
+
+        /*const t1 = new Date(getUTCDate());
+        const t2 = new Date(check[0].expiration);
+        const dif = t1.getTime() - t2.getTime();
+        //console.log("log: ", t1, t2)
+        const seconds = Math.abs(dif / 1000);*/
+        const remaining = getTimeRemaining(getUTCDate(), check[0].expiration)
+        const d = remaining.days ? `${remaining.days}d ` : "";
+        const h = remaining.hours ? `${remaining.hours}h ` : "";
+        const m = remaining.minutes ? `${remaining.minutes}m ` : "";
+        const s = remaining.seconds ? `${remaining.seconds}s ` : "0s";
+
+
+        return `Please wait ${d + h + m + s} before executing "${commandName}" again.`
+    } else {
+        await SQL("INSERT INTO command_cooldowns (user_id, command_id, expiration) VALUES (?,?,?)", [user.id, command.id, getUTCDate(command.cooldown * 1000)])
+        return false
+    }
+}
+
+
+function getTimeRemaining(start, end) {
+    const total = Math.abs(Date.parse(end) - Date.parse(new Date(start)));
+    const seconds = Math.floor((total / 1000) % 60);
+    const minutes = Math.floor((total / 1000 / 60) % 60);
+    const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+    const days = Math.floor(total / (1000 * 60 * 60 * 24));
+
+    return {
+        total,
+        days,
+        hours,
+        minutes,
+        seconds
+    };
+}
+
+module.exports = { cooldown, updateAvatar, updateTag, getUTCDate, decodeNumber, getTime, SQL, getItemByName, checkUserCreate, getUserData, getPoints, setPoints, getBank, setBank, setMaxBank, getSoapstatus, setSoapstatus, getPerms, ban, checkBan, unban, getServerCount };

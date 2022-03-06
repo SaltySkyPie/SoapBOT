@@ -1,10 +1,12 @@
 const { MessageEmbed } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'leaderboard',
     aliases: ['lb', 'rich', 'lead'],
-    cooldown: 0,
-    description: 'Basic leaderboard command',
+    slash: new SlashCommandBuilder()
+        .setName('leaderboard')
+        .setDescription('Server leaderboard'),
     async execute(message, args, BotClient, functions) {
 
         const guild = message.guild
@@ -48,7 +50,7 @@ module.exports = {
             }
             i++;
         })
-        message.channel.send({ embeds: [LeaderboardEmbed] });
+        message.reply({ embeds: [LeaderboardEmbed] });
 
     }
 }

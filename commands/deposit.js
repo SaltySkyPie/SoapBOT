@@ -1,8 +1,11 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
     name: 'deposit',
     aliases: ['dep'],
-    cooldown: 3,
-    description: 'Basic deposit command',
+    slash: new SlashCommandBuilder()
+        .setName('deposit')
+        .setDescription('Deposite soap to stash')
+        .addStringOption(option => option.setName('amount').setDescription('Amount').setRequired(true)),
     async execute(message, args, BotClient, functions) {
         const user = message.member;
         const bank = await functions.getBank(user.id); // 0 = current, 1 = max

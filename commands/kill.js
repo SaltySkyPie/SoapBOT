@@ -1,10 +1,13 @@
 const { MessageEmbed } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'kill',
     aliases: ['murder'],
-    cooldown: 1,
-    description: 'Basic kill command',
+    slash: new SlashCommandBuilder()
+    .setName('kill')
+    .setDescription('Kill a person')
+    .addUserOption(option => option.setName('victim').setDescription('Victim').setRequired(true)),
     async execute(message, args, BotClient, functions) {
 
         const user = message.member;
@@ -29,6 +32,6 @@ module.exports = {
             .setDescription(msg)
             .setColor("#ff00e4");
 
-        message.channel.send({ embeds: [Embed] });
+        message.reply({ embeds: [Embed] });
     }
 }

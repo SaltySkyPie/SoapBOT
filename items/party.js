@@ -21,7 +21,14 @@ module.exports = {
                 .setLabel("JOIN THE PARTY!")
                 .setStyle("SUCCESS")
         );
-        const reply = await message.channel.send({ embeds: [PartyEmbed], components: [row] })
+
+        let r
+        if (message.isInteraction) {
+            r = await message.reply({ embeds: [PartyEmbed], components: [row], fetchReply: true });
+        } else {
+            r = await message.channel.send({ embeds: [PartyEmbed], components: [row] })
+        }
+        const reply = r
 
         const collector = message.channel.createMessageComponentCollector({
             componentType: 'BUTTON',

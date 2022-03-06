@@ -1,10 +1,12 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'shop',
     aliases: ['store'],
-    cooldown: 3,
-    description: 'Basic shop command',
+    slash: new SlashCommandBuilder()
+        .setName('shop')
+        .setDescription('Shows the list of Items in the shop'),
     async execute(message, args, BotClient, functions) {
         let currentPage = 0;
         const count = await functions.SQL(`SELECT count(id) as count FROM items WHERE shop=1 AND stock!=0`);
@@ -35,7 +37,13 @@ module.exports = {
                 .setLabel("▶")
                 .setStyle("SECONDARY")
         );
-        const reply = await message.channel.send({ embeds: [ShopEmbed], components: [row] });
+        let r
+        if (message.isInteraction) {
+            r = await message.reply({ embeds: [ShopEmbed], components: [row], fetchReply: true });
+        } else {
+            r = await message.reply({ embeds: [ShopEmbed], components: [row] });
+        }
+        const reply = r
 
         const collector = message.channel.createMessageComponentCollector({
             componentType: 'BUTTON',

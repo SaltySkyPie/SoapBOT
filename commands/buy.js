@@ -1,9 +1,13 @@
 
+const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
     name: 'buy',
     aliases: [],
-    cooldown: 3,
-    description: 'Basic buy command',
+    slash: new SlashCommandBuilder()
+        .setName('buy')
+        .setDescription('Buy an item from the shop')
+        .addStringOption(option => option.setName('item').setDescription('Item name').setRequired(true))
+        .addStringOption(option => option.setName('amount').setDescription('Amount')),
     async execute(message, args, BotClient, functions) {
         if (!args.length) {
             return message.reply("I mean don't get me wrong, but for this to work you need to specify an item name :)")
@@ -16,7 +20,7 @@ module.exports = {
             const last = args.pop()
             const try_amount = await functions.decodeNumber(last)
             //console.log(try_amount)
-            if(try_amount && typeof try_amount === 'number' && !isNaN(try_amount)) {
+            if (try_amount && typeof try_amount === 'number' && !isNaN(try_amount)) {
                 x = try_amount
             } else {
                 args.push(last)

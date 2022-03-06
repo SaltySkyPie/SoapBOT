@@ -1,10 +1,12 @@
 const { MessageEmbed } = require("discord.js");
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
     name: 'website',
     aliases: ['web', 'page'],
-    cooldown: 0,
-    description: 'Basic web command',
+    slash: new SlashCommandBuilder()
+    .setName('website')
+    .setDescription('Soap BOT website'),
     execute(message, args, BotClient, functions) {
         const DailyEmbed = new MessageEmbed()
             .setTitle(`Soap BOT!`)
@@ -12,6 +14,6 @@ module.exports = {
             .setColor("#ff00e4")
             .setURL('https://soapbot.net').setThumbnail(BotClient.user.avatarURL());
 
-        message.channel.send({ embeds: [DailyEmbed] });
+        message.reply({ embeds: [DailyEmbed] });
     }
 }
