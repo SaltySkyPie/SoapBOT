@@ -11,7 +11,7 @@ module.exports = {
         .addUserOption(option => option.setName('victim').setDescription('Victim').setRequired(true)),
     async execute(message, args, BotClient, functions) {
         if(message.isInteraction) {
-            message.deferReply()
+            await message.deferReply()
         }
         const user = message.member;
         const mention = message.mentions.members.first();
