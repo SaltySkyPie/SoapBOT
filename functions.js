@@ -322,7 +322,7 @@ async function cooldown(user, commandName) {
 
 
 function getTimeRemaining(start, end) {
-    const total = Math.abs(Date.parse(end) - Date.parse(new Date(start)));
+    const total = Math.abs(Date.parse(new Date(end)) - Date.parse(new Date(start)));
     const seconds = Math.floor((total / 1000) % 60);
     const minutes = Math.floor((total / 1000 / 60) % 60);
     const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
