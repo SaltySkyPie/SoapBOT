@@ -145,8 +145,7 @@ module.exports = {
                 }
                 const earned = Math.floor(Math.random() * (1500 - 750 + 1) + 750);
                 let points = await functions.getPoints(i.member.id)
-                await functions.setPoints(i.member.id, points + earned)
-
+                await functions.setPoints(i.member.id, (points + earned))
                 const daddy_row = new MessageActionRow().addComponents(
                     new MessageButton()
                         .setCustomId("soap_daddy" + message.id)
@@ -163,8 +162,6 @@ module.exports = {
 
             pickup_collector.on('end', async () => {
                 const m_earned = Math.floor(Math.random() * (1500 - 750 + 1) + 750);
-                let points = await functions.getPoints(mention.id)
-                functions.setPoints(mention.id, points + m_earned)
                 const daddy_row = new MessageActionRow().addComponents(
                     new MessageButton()
                         .setCustomId("soap_daddy" + message.id)
@@ -173,7 +170,9 @@ module.exports = {
                         .setDisabled(true)
                 );
                 pickup_msg.edit({ components: [daddy_row] })
-                setTimeout(() => {
+                setTimeout(async () => {
+                    let points = await functions.getPoints(mention.id)
+                    functions.setPoints(mention.id, (points + m_earned))
                     message.channel.send(`**${mention.displayName}** has picked up their soap and earned 🧼**${m_earned.toLocaleString()}**!`)
                     functions.setSoapstatus(mention.id, 0)
                 }, 1000);

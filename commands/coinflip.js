@@ -27,8 +27,12 @@ module.exports = {
             }
         }
 
+        if (args[args.length - 1].toLowerCase() == "max" || args[args.length - 1].toLowerCase() == "all") {
+            x = "max"
+            args.pop()
+        }
 
-        const bet_amount = x
+        let bet_amount = x
         const choice = args.join(' ')
         //console.log(bet_amount)
         if (!choice) {
@@ -40,7 +44,9 @@ module.exports = {
 
 
         const user_points = await functions.getPoints(message.author.id)
-        if (user_points < bet_amount) {
+        if (bet_amount == "max") {
+            bet_amount = user_points
+        } else if (user_points < bet_amount) {
             return message.reply(`You don't have enough soap to do that......`)
         }
         await functions.setPoints(message.author.id, (user_points - bet_amount))
@@ -78,7 +84,7 @@ module.exports = {
             .setImage(result_image)
 
 
-        setTimeout(async() => {
+        setTimeout(async () => {
             reply.edit({ embeds: [result] })
             if (success) {
                 const user_points = await functions.getPoints(message.author.id)
