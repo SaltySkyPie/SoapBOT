@@ -28,7 +28,7 @@ module.exports = {
             return message.reply('You don\'t even have that much soap...');
         }
         if (points == 0) {
-            return message.reply("You have litteral zero in your hand. Imagine being so poor lmao");
+            return message.reply("You have literally zero in your hand. Imagine being so poor lmao");
         }
         if (bank[0] == bank[1]) {
             return message.reply("Your stash is overflowing with foam...")

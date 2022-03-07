@@ -28,7 +28,7 @@ module.exports = {
             return message.reply('You don\'t even have that much soap...');
         }
         if (bank[0] == 0) {
-            return message.reply("You have litteral zero in your stash. Imagine being so poor lmao");
+            return message.reply("You have literally zero in your stash. Imagine being so poor lmao");
         }
 
         await Promise.all([functions.setPoints(user.id, (points + dep)), functions.setBank(user.id, (bank[0] - dep))]);
