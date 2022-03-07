@@ -36,7 +36,7 @@ module.exports = async (BotClient, functions, interaction) => {
                 }
                 args.push(field.value)
             }
-            console.log(args)
+            //console.log(args)
             //console.log(message.mentions.members)
 
 
