@@ -21,8 +21,8 @@ async function registerSlash(client: SoapClient) {
         const rest = new REST({ version: '10' }).setToken(client.token as string);
 
         await rest.put(
-            Routes.applicationGuildCommands('950804030148444180', '910660654443135026'),
-            //Routes.applicationCommands('908817514480406628'),
+            //Routes.applicationGuildCommands('950804030148444180', '910660654443135026'),
+            Routes.applicationCommands('908817514480406628'),
             { body: commands },
         );
         log("INFO", client.shardId, `Successfully refreshed application (/) commands.`)
