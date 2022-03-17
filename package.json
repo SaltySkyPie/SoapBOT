@@ -1,10 +1,27 @@
 {
+  "name": "soap",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "start": "cd out && nodemon index.js"
+  },
+  "author": "SaltySkyPie#3737",
+  "license": "ISC",
   "dependencies": {
     "@discordjs/rest": "^0.3.0",
-    "discord-api-types": "^0.27.3",
-    "discord.js": "^13.4.0",
-    "dotenv": "^10.0.0",
+    "chalk": "^5.0.1",
+    "discord-api-types": "^0.28.0",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
     "jimp": "^0.16.1",
-    "mysql": "^2.18.1"
-  }
+    "mysql2": "^2.3.3",
+    "promise-mysql": "^5.1.0"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/mysql": "^2.15.21",
+    "@types/node": "^17.0.21"
+  },
+  "type": "module"
 }
