@@ -63,7 +63,7 @@ export default class BotCommand extends Command {
 
     async getSlash(): Promise<SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">> {
 
-        const items = await SQL("SELECT * FROM items ORDER BY item_name")
+        const items = await SQL("SELECT * FROM items WHERE buyable=1 ORDER BY item_name")
 
         return new SlashCommandBuilder()
             .setName(this.name)

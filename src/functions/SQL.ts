@@ -19,16 +19,18 @@ async function SQL(sqlString: string, parameters: Array<any> = [], transation: b
     log("SQL", global.shardId, sqlString, parameters);
     const connection = await (await pool).getConnection();
     try {
-    transation ? await connection.beginTransaction() : null;
-    const result = await connection.query({
-        sql: sqlString,
-        values: parameters,
-        timeout: timeout
-    });
-    transation ? await connection.commit() : null;
-    return result;
+        transation ? await connection.beginTransaction() : null;
+        const result = await connection.query({
+            sql: sqlString,
+            values: parameters,
+            timeout: timeout
+        });
+        transation ? await connection.commit() : null;
+        connection.release()
+        return result;
     } catch (err) {
         await connection.rollback();
+        connection.release()
         throw err;
     }
 }

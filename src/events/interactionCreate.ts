@@ -22,9 +22,9 @@ export default async function execute(client: SoapClient, interaction: Interacti
 
         const u = i.options.getUser("user")
         await Promise.all([
-            await checkUserCreation(i.user.id),
-            u ? await checkUserCreation(u.id) : null,
-            await SQL("DELETE FROM active_items WHERE expiration_date<=?", [getMysqlDateTime()]),
+            checkUserCreation(i.user.id),
+            u ? checkUserCreation(u.id) : null,
+            SQL("DELETE FROM active_items WHERE expiration_date<=?", [getMysqlDateTime()]),
 
         ])
 
