@@ -32,6 +32,11 @@ export default class BotCommand extends Command {
             return false
         }
 
+        if(decoded > points) {
+            interaction.reply({content: `You don't even have that much 🧼...`})
+            return false
+        }
+
         await setPoints(interaction.user.id, points - decoded)
 
         const flipping = new MessageEmbed()

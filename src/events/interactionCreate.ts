@@ -11,7 +11,6 @@ import SoapClient from "../types/client";
 
 
 export default async function execute(client: SoapClient, interaction: Interaction) {
-    if (interaction.applicationId != "950804030148444180") { return }
     if (interaction.isCommand()) {
         const i: CommandInteraction = interaction as CommandInteraction
 
