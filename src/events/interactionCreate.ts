@@ -7,10 +7,15 @@ import getMysqlDateTime from "../functions/getMysqlDateTime.js";
 import log from "../functions/log.js";
 import putOnCooldown from "../functions/putOnCooldown.js";
 import SQL from "../functions/SQL.js";
+import updateAvatar from "../functions/updateAvatar.js";
+import updateTag from "../functions/updateTag.js";
 import SoapClient from "../types/client";
 
 
 export default async function execute(client: SoapClient, interaction: Interaction) {
+
+    await checkUserCreation(interaction.user.id)
+
     if (interaction.isCommand()) {
         const i: CommandInteraction = interaction as CommandInteraction
 
@@ -22,7 +27,6 @@ export default async function execute(client: SoapClient, interaction: Interacti
 
         const u = i.options.getUser("user")
         await Promise.all([
-            checkUserCreation(i.user.id),
             u ? checkUserCreation(u.id) : null,
             SQL("DELETE FROM active_items WHERE expiration_date<=?", [getMysqlDateTime()]),
 
@@ -51,9 +55,12 @@ export default async function execute(client: SoapClient, interaction: Interacti
         if (result) {
             await putOnCooldown(i.user.id, command.id)
         }
-        
+
         log("INFO", global.shardId, `${i.user.tag} issued command /${command.name} in ${i.guild?.name}.`)
 
     }
+    
+    updateTag(interaction.user.id, interaction.user.displayAvatarURL({ dynamic: true }))
+    updateAvatar(interaction.user.id, interaction.user.displayAvatarURL({ dynamic: true }))
     return
 }
