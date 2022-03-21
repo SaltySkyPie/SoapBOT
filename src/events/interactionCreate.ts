@@ -60,7 +60,7 @@ export default async function execute(client: SoapClient, interaction: Interacti
 
     }
     
-    updateTag(interaction.user.id, interaction.user.displayAvatarURL({ dynamic: true }))
+    updateTag(interaction.user.id, interaction.user.tag)
     updateAvatar(interaction.user.id, interaction.user.displayAvatarURL({ dynamic: true }))
     return
 }
