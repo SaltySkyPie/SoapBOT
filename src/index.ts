@@ -38,7 +38,7 @@ manager.spawn({ timeout: 30000, delay: 1000 })
     .then((shards) => {
         shards.forEach(shard => {
             shard.on('message', message => {
-                log("INFO", -1, `Shard ${shard.id} message : ${message._eval} : ${message._result}`);
+                log("INFO", `Shard ${shard.id} message : ${message._eval} : ${message._result}`);
             });
             shard.on('death', () => {
                 log("INFO", -1, `Shard ${shard.id} died.`)
