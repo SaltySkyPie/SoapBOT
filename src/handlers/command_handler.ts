@@ -3,8 +3,11 @@ import * as fs from "fs";
 import log from "../functions/log.js";
 import SQL from "../functions/SQL.js";
 import BotCommand from "../commands/ping";
+import fetch from "node-fetch";
 
 export default async function handle(client: SoapClient) {
+  const dblCommands = [];
+
   const commands = fs
     .readdirSync("./commands/")
     .filter((file) => file.endsWith(".js"));
@@ -28,6 +31,12 @@ export default async function handle(client: SoapClient) {
 
     client.commands.set(c.name, c);
 
+    dblCommands.push({
+      name: db_command.command,
+      description: db_command.description,
+      type: 1,
+    });
+
     log(
       "INFO",
       client.shardId,
@@ -36,4 +45,22 @@ export default async function handle(client: SoapClient) {
   }
 
   log("INFO", client.shardId, `All commands loaded`);
+  log("INFO", client.shardId, `Sending commands list to DBL...`);
+  const f = await fetch(
+    `https://discordbotlist.com/api/v1/bots/908817514480406628/commands`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bot ${process.env.DBL_TOKEN}`,
+      },
+      body: JSON.stringify(dblCommands),
+    }
+  );
+
+  log(
+    "INFO",
+    client.shardId,
+    `Finished sending commands list to DBL. (${f.status} ${f.statusText})`
+  );
 }

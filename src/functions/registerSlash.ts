@@ -19,11 +19,11 @@ async function registerSlash(client: SoapClient) {
     const rest = new REST({ version: "10" }).setToken(process.env.TOKEN!);
 
     await rest.put(
-      //Routes.applicationCommands('908817514480406628'),
-      Routes.applicationGuildCommands(
+      Routes.applicationCommands('908817514480406628'),
+      /*Routes.applicationGuildCommands(
         "950804030148444180",
         "910660654443135026"
-      ),
+      ),*/
       { body: commands }
     );
     log(
