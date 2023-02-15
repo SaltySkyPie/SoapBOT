@@ -1,4 +1,4 @@
 declare global {
-    var shardId: any;
+  var shardId: any;
 }
-export { };
+export {};
