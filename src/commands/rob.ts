@@ -124,7 +124,7 @@ export default class BotCommand extends Command {
         }**! (${Math.round(percent * 100)}% of their total 🧼).`,
       });
     } else {
-      const loss_percentage = parseInt(await getBaseValue("rob_fail_loss"));
+      const loss_percentage = parseFloat(await getBaseValue("rob_fail_loss"));
 
       const failDm = new MessageEmbed()
         .setTitle(
@@ -134,7 +134,7 @@ export default class BotCommand extends Command {
         .setDescription(`<#${interaction.channelId}>`);
       await dmUser(mention, { embeds: [failDm] });
 
-      const lostAmount = Math.round(0.1 * robber.points);
+      const lostAmount = Math.round(loss_percentage * robber.points);
       await Promise.all([
         setPoints(mention.id, victim.points + lostAmount),
         setPoints(user.id, robber.points - lostAmount),
