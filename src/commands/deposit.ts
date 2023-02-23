@@ -34,6 +34,11 @@ export default class BotCommand extends Command {
       return false;
     }
 
+     if (decoded < 0) {
+       interaction.reply({ content: `I can only slip on positive numbers...` });
+       return false;
+     }
+
     if (!current_points) {
       interaction.reply({
         content: `You have literally zero in your hand. Imagine being so poor lmao`,

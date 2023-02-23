@@ -41,6 +41,11 @@ export default class BotCommand extends Command {
       return false;
     }
 
+    if(decoded < 0) {
+      interaction.reply({ content: `I can only slip on positive numbers...` });
+      return false;
+    }
+
     await Promise.all([
       setPoints(user.id, current_points + decoded),
       setBank(user.id, current_stash_balance - decoded),
