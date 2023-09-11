@@ -30,7 +30,7 @@ export default class BotCommand extends Command {
       .setColor("#ff00e4")
       .setAuthor({
         name: "Help",
-        iconURL: "https://skippies.fun/discord/SoapBOT/images/soap.png",
+        iconURL: "https://cdn.saltyskypie.com/soapbot/images/soap.png",
       })
       .setDescription("List of all Soap BOT commands")
       .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
@@ -86,7 +86,7 @@ export default class BotCommand extends Command {
           .setColor("#ff00e4")
           .setAuthor({
             name: "Help",
-            iconURL: "https://skippies.fun/discord/SoapBOT/images/soap.png",
+            iconURL: "https://cdn.saltyskypie.com/soapbot/images/soap.png",
           })
           .setDescription("List of all Soap BOT commands")
           .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });

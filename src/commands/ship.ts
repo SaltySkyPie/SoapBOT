@@ -53,17 +53,17 @@ export default class BotCommand extends Command {
     let [img_max_x, img_max_y, sender_x, sender_y, target_x, target_y] = [
       0, 0, 0, 0, 0, 0,
     ];
-    let img_url = "https://skippies.fun/discord/soapbot/images/love3.png";
+    let img_url = "https://cdn.saltyskypie.com/soapbot/images/love3.png";
     const font = await Jimp.loadFont(Jimp.FONT_SANS_128_BLACK);
 
     if (percentage < 33) {
-      img_url = "https://skippies.fun/discord/soapbot/images/love1.png";
+      img_url = "https://cdn.saltyskypie.com/soapbot/images/love1.png";
       [img_max_x, img_max_y] = [1200, 600];
     } else if (percentage < 66) {
-      img_url = "https://skippies.fun/discord/soapbot/images/love2.png";
+      img_url = "https://cdn.saltyskypie.com/soapbot/images/love2.png";
       [img_max_x, img_max_y] = [960, 639];
     } else {
-      img_url = "https://skippies.fun/discord/soapbot/images/love3.png";
+      img_url = "https://cdn.saltyskypie.com/soapbot/images/love3.png";
       [img_max_x, img_max_y] = [1200, 485];
     }
 

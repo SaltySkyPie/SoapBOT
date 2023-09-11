@@ -45,7 +45,7 @@ export default class BotCommand extends Command {
       .setColor("#ff00e4")
       .setAuthor({
         name: "Soap BOT stats",
-        iconURL: "https://skippies.fun/discord/SoapBOT/images/soap.png",
+        iconURL: "https://cdn.saltyskypie.com/soapbot/images/soap.png",
       })
       .addFields([
         { name: `\u200B`, value: `**Servers**: ${guilds}` },

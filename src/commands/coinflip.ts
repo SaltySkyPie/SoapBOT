@@ -46,7 +46,7 @@ export default class BotCommand extends Command {
     await setPoints(interaction.user.id, points - decoded);
 
     const flipping = new MessageEmbed()
-      .setImage("https://skippies.fun/discord/soapbot/gifs/flip.gif")
+      .setImage("https://cdn.saltyskypie.com/soapbot/gifs/flip.gif")
       .setTitle(`${(interaction.member as GuildMember).displayName}`)
       .setAuthor({
         name: `${(interaction.member as GuildMember).displayName}'s coin flip`,
@@ -63,10 +63,10 @@ export default class BotCommand extends Command {
     })) as Message;
 
     const result_image = success
-      ? "https://skippies.fun/discord/soapbot/gifs/flip-success.gif"
+      ? "https://cdn.saltyskypie.com/soapbot/gifs/flip-success.gif"
       : side.toLowerCase() == "heads"
-      ? "https://skippies.fun/discord/soapbot/gifs/heads-fail.gif"
-      : "https://skippies.fun/discord/soapbot/gifs/tails-fail.gif";
+      ? "https://cdn.saltyskypie.com/soapbot/gifs/heads-fail.gif"
+      : "https://cdn.saltyskypie.com/soapbot/gifs/tails-fail.gif";
 
     const result = new MessageEmbed()
       .setColor("#ff00e4")
