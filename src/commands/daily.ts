@@ -19,7 +19,7 @@ export default class BotCommand extends Command {
     const DailyEmbed = new MessageEmbed()
       .setTitle(`Take your daily soapy reward!`)
       .setDescription(
-        `You recieved 🧼**${points_to_add.toLocaleString()}**\nMake sure to check out https://soapbot.net and vote for Soap BOT for some additional goodies!`
+        `You recieved 🧼**${points_to_add.toLocaleString()}**\nMake sure to check out https://soapbot.saltyskypie.com and vote for Soap BOT for some additional goodies!`
       )
       .setColor("#ff00e4");
 

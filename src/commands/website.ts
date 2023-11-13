@@ -10,7 +10,7 @@ export default class BotCommand extends Command {
   async execute(client: SoapClient, interaction: CommandInteraction) {
     const WebsiteEmbed = new MessageEmbed()
       .setTitle(`Soap BOT!`)
-      .setDescription(`Check out Soap BOT website!\nhttps://soapbot.net`)
+      .setDescription(`Check out Soap BOT website!\nhttps://soapbot.saltyskypie.com`)
       .setColor("#ff00e4")
       .setURL("https://soapbot.saltyskypie.com")
       .setThumbnail(client.user?.avatarURL() as string);
