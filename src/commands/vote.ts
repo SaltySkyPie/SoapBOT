@@ -15,7 +15,7 @@ export default class BotCommand extends Command {
       )
       .setThumbnail(client.user?.avatarURL() as string)
       .setColor("#ff00e4")
-      .setURL("https://soapbot.net/vote");
+      .setURL("https://soapbot.saltyskypie.com/vote");
 
     interaction.reply({ embeds: [VoteEmbed] });
     return true;

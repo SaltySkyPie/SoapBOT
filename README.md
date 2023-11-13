@@ -1,3 +1,3 @@
 # SoapBOT
 
-Website: https://soapbot.net
+Website: https://soapbot.saltyskypie.com
