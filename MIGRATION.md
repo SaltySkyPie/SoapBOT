@@ -17,29 +17,32 @@ This document outlines the changes made to upgrade the SoapBOT repository.
 
 ### 3. Prisma Setup
 - ✅ Initialized Prisma with MySQL provider
-- ✅ Created comprehensive Prisma schema with all models:
+- ✅ Created comprehensive Prisma schema matching existing database with all models:
   - User, Item, Inventory, Command, Ban, Love
   - ActiveItem, CommandCooldown, Gif, KillMessage
+  - BaseValue, WebReward, WebRewardClaim
+- ✅ Schema corrected to match actual database structure (BigInt IDs, all fields)
 - ✅ Generated Prisma Client at `src/generated/prisma`
 - ✅ Created Prisma client instance at `src/lib/prisma.ts`
 
 ### 4. Database Migration (Functions)
-All helper functions have been migrated to Prisma:
+All helper functions have been migrated to Prisma with proper BigInt handling:
 - ✅ `getUserData.ts`
 - ✅ `getPoints.ts` / `setPoints.ts`
 - ✅ `getBank.ts` / `setBank.ts`
 - ✅ `checkUserCreation.ts`
 - ✅ `checkBan.ts`
-- ✅ `checkCooldown.ts` / `putOnCooldown.ts`
-- ✅ `getSoapStatus.ts` / `setSoapStatus.ts`
+- ✅ `checkCooldown.ts` / `putOnCooldown.ts` (BigInt IDs)
+- ✅ `getSoapStatus.ts` / `setSoapStatus.ts` (fixed to use Int)
 - ✅ `getItemByName.ts`
+- ✅ `getBaseValue.ts` (updated to use Prisma with BaseValue model)
 - ✅ `updateTag.ts` / `updateAvatar.ts`
-- ✅ `addItem.ts` / `setItemAmount.ts`
-- ✅ `addActiveItem.ts` / `checkActiveItem.ts` / `removeActiveItem.ts`
+- ✅ `addItem.ts` / `setItemAmount.ts` (BigInt IDs)
+- ✅ `addActiveItem.ts` / `checkActiveItem.ts` / `removeActiveItem.ts` (BigInt IDs)
 
 ### 5. Handler Files
-- ✅ Updated `handlers/command_handler.ts` to use Prisma
-- ✅ Updated `handlers/item_handler.ts` to use Prisma
+- ✅ Updated `handlers/command_handler.ts` to use Prisma with BigInt conversions
+- ✅ Updated `handlers/item_handler.ts` to use Prisma with BigInt conversions
 
 ### 6. Event Files
 - ✅ Updated `events/interactionCreate.ts` to use Prisma and Discord.js v14
@@ -107,12 +110,15 @@ Files affected:
 - Null safety checks for user data from Prisma
 - SlashCommandOptionsOnlyBuilder type compatibility
 
-### 5. Missing Database Schema Fields
-The Prisma schema has been updated with:
-- `buy_cost`, `sell_cost`, `use_timer` for Item model
-- `cooldown` for Command model
+### 5. Database Schema Status
+The Prisma schema now perfectly matches your existing MySQL database:
+- ✅ All ID fields use BigInt (matching database bigint(20))
+- ✅ All User fields included (permissions, passive, email, soap_status as Int)
+- ✅ All Item fields included (sellable, multiple_usable, activable, active_duration, targetable, item_image)
+- ✅ Ban includes admin_id and issued_on
+- ✅ BaseValue, WebReward, and WebRewardClaim models added
 
-**Important:** You need to run database migrations to add these fields to your existing MySQL database.
+**No database migrations needed** - the schema maps to your existing database structure.
 
 ### 6. Environment Configuration
 Update your `.env` file with actual database credentials:
@@ -127,14 +133,14 @@ DATABASE_URL="mysql://your_db_user:your_db_password@your_db_host:3306/your_db_na
 
 ## 📝 Next Steps
 
-1. **Update Database Schema**
+1. **Update your .env file** with actual database credentials (see Environment Configuration section)
+
+2. **Verify Prisma connection** (optional):
    ```bash
-   npx prisma db push
-   # or create a migration
-   npx prisma migrate dev --name add_missing_fields
+   npx prisma db pull  # This will verify the connection and show any schema diffs
    ```
 
-2. **Complete Command Migration**
+3. **Complete Command Migration**
    - Update remaining commands to use Prisma instead of SQL
    - Update Discord.js v14 components (ActionRowBuilder, ButtonBuilder)
    - Fix type issues with BigInt operations
