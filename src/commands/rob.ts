@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
+import { CommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -80,7 +80,7 @@ export default class BotCommand extends Command {
     if (hardenerCheck) {
       await removeActiveItem(victim.id, 2);
 
-      const failDm = new MessageEmbed()
+      const failDm = new EmbedBuilder()
         .setTitle(
           `${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${interaction.guild?.name} but failed due to you having Soap Hardener equipped!`
         )
@@ -105,7 +105,7 @@ export default class BotCommand extends Command {
 
     if (success) {
       const percent = Math.round(Math.random() * 100 + 1) / 100;
-      const successDm = new MessageEmbed()
+      const successDm = new EmbedBuilder()
         .setTitle(
           `${user.displayName} (${user.user.username}#${user.user.discriminator}) stole from you in ${interaction.guild?.name}!`
         )
@@ -126,7 +126,7 @@ export default class BotCommand extends Command {
     } else {
       const loss_percentage = parseFloat(await getBaseValue("rob_fail_loss"));
 
-      const failDm = new MessageEmbed()
+      const failDm = new EmbedBuilder()
         .setTitle(
           `${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${interaction.guild?.name} but failed!`
         )

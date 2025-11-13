@@ -1,4 +1,4 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
+import { CommandInteraction, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -8,7 +8,7 @@ export default class BotCommand extends Command {
     super(id, name, description);
   }
   async execute(client: SoapClient, interaction: CommandInteraction) {
-    const WebsiteEmbed = new MessageEmbed()
+    const WebsiteEmbed = new EmbedBuilder()
       .setTitle(`Soap BOT!`)
       .setDescription(`Check out Soap BOT website!\nhttps://soapbot.saltyskypie.com`)
       .setColor("#ff00e4")

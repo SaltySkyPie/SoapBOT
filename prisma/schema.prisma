@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  user_id      String   @unique @db.VarChar(255)
+  points       BigInt   @default(0)
+  stash        BigInt   @default(0)
+  max_stash    BigInt   @default(0)
+  tag          String?  @db.VarChar(255)
+  avatar_url   String?  @db.VarChar(512)
+  soap_status  String?  @db.Text
+  created_at   DateTime @default(now())
+
+  bans              Ban[]
+  inventory         Inventory[]
+  activeItems       ActiveItem[]
+  commandCooldowns  CommandCooldown[]
+  lovesAsUser1      Love[]          @relation("User1")
+  lovesAsUser2      Love[]          @relation("User2")
+
+  @@map("users")
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  item_name   String   @unique @db.VarChar(255)
+  description String?  @db.Text
+  buyable     Int      @default(0) @db.TinyInt
+  useable     Int      @default(0) @db.TinyInt
+  shop        Int      @default(0) @db.TinyInt
+  stock       Int?
+  price       Int?
+  buy_cost    Int      @default(0)
+  sell_cost   Int      @default(0)
+  use_timer   Int      @default(0)
+  created_at  DateTime @default(now())
+
+  inventory   Inventory[]
+  activeItems ActiveItem[]
+
+  @@map("items")
+}
+
+model Inventory {
+  id      Int    @id @default(autoincrement())
+  user_id Int
+  item_id Int
+  amount  BigInt @default(0)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [item_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, item_id])
+  @@index([user_id])
+  @@index([item_id])
+  @@map("inventory")
+}
+
+model Command {
+  id          Int      @id @default(autoincrement())
+  command     String   @unique @db.VarChar(255)
+  description String?  @db.Text
+  cooldown    Int      @default(0)
+
+  cooldowns CommandCooldown[]
+
+  @@map("commands")
+}
+
+model Ban {
+  id      Int     @id @default(autoincrement())
+  user_id Int
+  reason  String? @db.Text
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("bans")
+}
+
+model Love {
+  id        Int       @id @default(autoincrement())
+  user1_id  Int
+  user2_id  Int
+  rating    Int
+  expires   DateTime?
+
+  user1 User @relation("User1", fields: [user1_id], references: [id], onDelete: Cascade)
+  user2 User @relation("User2", fields: [user2_id], references: [id], onDelete: Cascade)
+
+  @@index([user1_id, user2_id])
+  @@map("love")
+}
+
+model ActiveItem {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  item_id         Int
+  expiration_date DateTime
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [item_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, item_id])
+  @@map("active_items")
+}
+
+model CommandCooldown {
+  id         Int      @id @default(autoincrement())
+  command_id Int
+  user_id    Int
+  expiration DateTime
+
+  command Command @relation(fields: [command_id], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([command_id, user_id])
+  @@map("command_cooldowns")
+}
+
+model Gif {
+  id      Int    @id @default(autoincrement())
+  link    String @db.VarChar(512)
+  purpose Int    @db.TinyInt
+
+  @@index([purpose])
+  @@map("gifs")
+}
+
+model KillMessage {
+  id      Int    @id @default(autoincrement())
+  message String @db.Text
+
+  @@map("kill_msg")
+}

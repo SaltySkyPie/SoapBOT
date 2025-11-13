@@ -1,7 +1,7 @@
 import SoapClient from "../types/client";
 import * as fs from "fs";
 import log from "../functions/log.js";
-import SQL from "../functions/SQL.js";
+import prisma from "../lib/prisma.js";
 import BotCommand from "../commands/ping";
 import fetch from "node-fetch";
 
@@ -16,17 +16,15 @@ export default async function handle(client: SoapClient) {
     log("INFO", client.shardId, `Loading command ${command.split(".")[0]}...`);
     const cmd = await import(`../commands/${command}`);
 
-    const db_command = (
-      await SQL(
-        "SELECT id, command, description FROM commands WHERE command=?",
-        [command.split(".")[0]]
-      )
-    )[0];
+    const db_command = await prisma.command.findUnique({
+      where: { command: command.split(".")[0] },
+      select: { id: true, command: true, description: true },
+    });
     if (!db_command) continue;
     const c: BotCommand = new cmd.default(
       db_command.id,
       db_command.command,
-      db_command.description
+      db_command.description || ""
     );
 
     client.commands.set(c.name, c);

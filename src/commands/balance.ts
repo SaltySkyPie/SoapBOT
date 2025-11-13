@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
+import { CommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -19,7 +19,7 @@ export default class BotCommand extends Command {
 
     const points = await Promise.all([getPoints(user.id), getBank(user.id)]);
 
-    const BalanceEmbed = new MessageEmbed()
+    const BalanceEmbed = new EmbedBuilder()
       .setTitle(`${user.displayName}'s balance`)
       .setDescription(
         `Hand: 🧼**${points[0].toLocaleString()}**\nStash: 🧼**${points[1][0].toLocaleString()}** / 🧼**${points[1][1].toLocaleString()}**`

@@ -2,7 +2,7 @@ import {
   CommandInteraction,
   GuildMember,
   Message,
-  MessageEmbed,
+  EmbedBuilder,
 } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
@@ -17,7 +17,7 @@ export default class BotCommand extends Command {
   }
   async execute(client: SoapClient, interaction: CommandInteraction) {
     const success = Math.round(Math.random());
-    const avatar = interaction.user.displayAvatarURL({ dynamic: true });
+    const avatar = interaction.user.displayAvatarURL();
 
     const [side, bet] = [
       interaction.options.getString("side"),
@@ -45,7 +45,7 @@ export default class BotCommand extends Command {
 
     await setPoints(interaction.user.id, points - decoded);
 
-    const flipping = new MessageEmbed()
+    const flipping = new EmbedBuilder()
       .setImage("https://cdn.saltyskypie.com/soapbot/gifs/flip.gif")
       .setTitle(`${(interaction.member as GuildMember).displayName}`)
       .setAuthor({
@@ -68,7 +68,7 @@ export default class BotCommand extends Command {
       ? "https://cdn.saltyskypie.com/soapbot/gifs/heads-fail.gif"
       : "https://cdn.saltyskypie.com/soapbot/gifs/tails-fail.gif";
 
-    const result = new MessageEmbed()
+    const result = new EmbedBuilder()
       .setColor("#ff00e4")
       .setTitle(
         `${

@@ -1,10 +1,10 @@
 import { Snowflake } from "discord.js";
-import SQL from "./SQL.js";
+import prisma from "../lib/prisma.js";
 
 export default async function setBank(userId: Snowflake, newPoints: number) {
-  newPoints = await SQL(`UPDATE users SET stash=? WHERE user_id=?`, [
-    newPoints,
-    userId,
-  ]);
+  await prisma.user.update({
+    where: { user_id: userId },
+    data: { stash: newPoints },
+  });
   return newPoints;
 }

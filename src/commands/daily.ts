@@ -1,4 +1,4 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
+import { CommandInteraction, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -16,7 +16,7 @@ export default class BotCommand extends Command {
       interaction.user.id,
       (await getPoints(interaction.user.id)) + points_to_add
     );
-    const DailyEmbed = new MessageEmbed()
+    const DailyEmbed = new EmbedBuilder()
       .setTitle(`Take your daily soapy reward!`)
       .setDescription(
         `You recieved 🧼**${points_to_add.toLocaleString()}**\nMake sure to check out https://soapbot.saltyskypie.com and vote for Soap BOT for some additional goodies!`

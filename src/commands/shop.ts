@@ -1,6 +1,6 @@
 import {
   CommandInteraction,
-  MessageEmbed,
+  EmbedBuilder,
   MessageActionRow,
   MessageButton,
   Message,
@@ -28,7 +28,7 @@ export default class BotCommand extends Command {
     };
     let items = await getItems(currentPage);
 
-    const ShopEmbed = new MessageEmbed()
+    const ShopEmbed = new EmbedBuilder()
       .setColor("#ff00e4")
       .setAuthor({
         name: "Shop",
@@ -90,7 +90,7 @@ export default class BotCommand extends Command {
         }
         items = await getItems(currentPage);
 
-        const ShopPageEmbed = new MessageEmbed()
+        const ShopPageEmbed = new EmbedBuilder()
           .setColor("#ff00e4")
           .setAuthor({
             name: "Shop",

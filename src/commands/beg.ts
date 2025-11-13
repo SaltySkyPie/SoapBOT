@@ -1,4 +1,4 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
+import { CommandInteraction, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -17,7 +17,7 @@ export default class BotCommand extends Command {
       (await getPoints(interaction.user.id)) + random
     );
 
-    const BegEmbed = new MessageEmbed()
+    const BegEmbed = new EmbedBuilder()
       .setTitle(`You begged and received **🧼${random.toLocaleString()}**!`)
       .setDescription(`Now that you have some money go buy something!`)
       .setColor("#ff00e4");

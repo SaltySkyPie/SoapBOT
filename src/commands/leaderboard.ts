@@ -1,4 +1,4 @@
-import { Collection, CommandInteraction, MessageEmbed } from "discord.js";
+import { Collection, CommandInteraction, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -30,7 +30,7 @@ export default class BotCommand extends Command {
       [members]
     );
 
-    const LeaderboardEmbed = new MessageEmbed()
+    const LeaderboardEmbed = new EmbedBuilder()
       .setColor("#ff00e4")
       .setAuthor({
         name: `Leaderboard for ${guild!.name!}`,

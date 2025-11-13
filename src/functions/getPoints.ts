@@ -1,9 +1,10 @@
 import { Snowflake } from "discord.js";
-import SQL from "./SQL.js";
+import prisma from "../lib/prisma.js";
 
 export default async function getPoints(userId: Snowflake) {
-  const points = await SQL(`SELECT points FROM users WHERE user_id=?`, [
-    userId,
-  ]);
-  return points.length ? points[points.length - 1].points : 0;
+  const user = await prisma.user.findUnique({
+    where: { user_id: userId },
+    select: { points: true },
+  });
+  return user ? Number(user.points) : 0;
 }

@@ -1,7 +1,7 @@
 import SoapClient from "../types/client";
 import * as fs from "fs";
 import log from "../functions/log.js";
-import SQL from "../functions/SQL.js";
+import prisma from "../lib/prisma.js";
 import BotItem from "../items/rope";
 
 export default async function handle(client: SoapClient) {
@@ -13,17 +13,15 @@ export default async function handle(client: SoapClient) {
     log("INFO", client.shardId, `Loading item ${item.split(".")[0]}...`);
     const it = await import(`../items/${item}`);
 
-    const db_item = (
-      await SQL(
-        "SELECT id, item_name, description FROM items WHERE item_name=?",
-        [item.split(".")[0]]
-      )
-    )[0];
+    const db_item = await prisma.item.findUnique({
+      where: { item_name: item.split(".")[0] },
+      select: { id: true, item_name: true, description: true },
+    });
     if (!db_item) continue;
     const i: BotItem = new it.default(
       db_item.id,
       db_item.item_name.toLowerCase(),
-      db_item.description
+      db_item.description || ""
     );
 
     client.items.set(i.name, i);

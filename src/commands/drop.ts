@@ -1,7 +1,7 @@
 import {
   CommandInteraction,
   GuildMember,
-  MessageEmbed,
+  EmbedBuilder,
   MessageActionRow,
   MessageButton,
   Message,
@@ -61,7 +61,7 @@ export default class BotCommand extends Command {
 
     if (ropeCheck) {
       await removeActiveItem(user_id, 1);
-      const fail_dm = new MessageEmbed()
+      const fail_dm = new EmbedBuilder()
         .setTitle(
           ` ${user.displayName} (${user.user.username}#${
             user.user.discriminator
@@ -87,7 +87,7 @@ export default class BotCommand extends Command {
       )
     )[0].link;
 
-    const DropEmbed = new MessageEmbed()
+    const DropEmbed = new EmbedBuilder()
       .setTitle("Oh no!")
       .setDescription(
         `**${target.displayName}** dropped the soap! Click the button to pick up the soap!\nYou have 5 minutes to pick up your soap!`
@@ -102,7 +102,7 @@ export default class BotCommand extends Command {
         .setStyle("SUCCESS")
     );
 
-    const dm = new MessageEmbed()
+    const dm = new EmbedBuilder()
       .setTitle(
         ` ${user.displayName} (${user.user.username}#${
           user.user.discriminator
@@ -155,7 +155,7 @@ export default class BotCommand extends Command {
         )
       )[0].link;
 
-      const PickUpEmbed = new MessageEmbed()
+      const PickUpEmbed = new EmbedBuilder()
         .setTitle("Oh yeah!")
         .setDescription(
           `**${target.displayName}** is picking up their soap! Click the "DADDY" button to get some 🧼!\nYou have 10 seconds to do so!`

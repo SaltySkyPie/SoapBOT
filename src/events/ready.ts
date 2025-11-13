@@ -1,7 +1,7 @@
 import log from "../functions/log.js";
 import SoapClient from "../types/client";
 import getBaseValue from "../functions/getBaseValue.js";
-import { PresenceStatusData } from "discord.js";
+import { PresenceUpdateStatus, ActivityType } from "discord.js";
 
 export default async function execute(client: SoapClient) {
   updateStatus(client);
@@ -21,7 +21,7 @@ async function updateStatus(client: SoapClient) {
     `Updating presence status to ${status} - "${presence}"`
   );
   client.user?.setPresence({
-    activities: [{ name: `${presence}` }],
-    status: status,
+    activities: [{ name: `${presence}`, type: ActivityType.Playing }],
+    status: status as PresenceUpdateStatus,
   });
 }

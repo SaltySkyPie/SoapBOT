@@ -1,4 +1,4 @@
-import { Client, Intents, Collection } from "discord.js";
+import { Client, GatewayIntentBits, Collection } from "discord.js";
 import log from "./functions/log.js";
 import * as fs from "fs";
 import "dotenv/config";
@@ -6,7 +6,7 @@ import SoapClient from "./types/client.js";
 import SQL from "./functions/SQL.js";
 
 const client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
 }) as SoapClient;
 
 const handlers = fs

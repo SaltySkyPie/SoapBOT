@@ -1,6 +1,6 @@
 import {
   CommandInteraction,
-  MessageEmbed,
+  EmbedBuilder,
   MessageActionRow,
   MessageButton,
   Message,
@@ -22,7 +22,7 @@ export default class BotCommand extends Command {
       user = interaction.member as GuildMember;
     }
 
-    const avatar = user.user.displayAvatarURL({ dynamic: true });
+    const avatar = user.user.displayAvatarURL();
     const db_user = await getUserData(user.id);
 
     let currentPage = 0;
@@ -41,7 +41,7 @@ export default class BotCommand extends Command {
       return all;
     };
 
-    const InventoryEmbed = new MessageEmbed()
+    const InventoryEmbed = new EmbedBuilder()
       .setColor("#ff00e4")
       .setAuthor({ name: `${user.displayName}'s inventory`, iconURL: avatar })
       .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
@@ -106,7 +106,7 @@ export default class BotCommand extends Command {
         }
         items = await getItems(currentPage);
 
-        const InventoryPageEmbed = new MessageEmbed()
+        const InventoryPageEmbed = new EmbedBuilder()
           .setColor("#ff00e4")
           .setAuthor({
             name: `${user.displayName}'s inventory`,

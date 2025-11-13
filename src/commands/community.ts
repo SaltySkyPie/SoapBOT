@@ -1,4 +1,4 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
+import { CommandInteraction, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -8,7 +8,7 @@ export default class BotCommand extends Command {
     super(id, name, description);
   }
   async execute(client: SoapClient, interaction: CommandInteraction) {
-    const CommunityEmbed = new MessageEmbed()
+    const CommunityEmbed = new EmbedBuilder()
       .setTitle("Join Soap BOT community server!")
       .setDescription(
         "Giveaways, Beta testing and more!\nhttps://discord.gg/y3xMSTrUuD"

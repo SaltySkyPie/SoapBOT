@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember, MessageAttachment } from "discord.js";
+import { CommandInteraction, GuildMember, AttachmentBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -76,12 +76,12 @@ export default class BotCommand extends Command {
       Jimp.read(img_url),
       Jimp.read(
         user.user
-          .displayAvatarURL({ dynamic: true })
+          .displayAvatarURL()
           .replace(/\.[^/.]+$/, ".png")
       ),
       Jimp.read(
         mention.user
-          .displayAvatarURL({ dynamic: true })
+          .displayAvatarURL()
           .replace(/\.[^/.]+$/, ".png")
       ),
     ]);
@@ -103,7 +103,7 @@ export default class BotCommand extends Command {
     );
 
     image.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
-      const attachment = new MessageAttachment(buffer, "love.png");
+      const attachment = new AttachmentBuilder(buffer, { name: "love.png" });
       interaction.followUp({ files: [attachment] });
     });
 

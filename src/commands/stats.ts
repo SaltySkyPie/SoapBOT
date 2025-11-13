@@ -1,4 +1,4 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
+import { CommandInteraction, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -41,7 +41,7 @@ export default class BotCommand extends Command {
     const s = remaining.seconds ? `${remaining.seconds}s ` : "0s";
     const uptime = `${d + h + m + s}`;
 
-    const StatsEmbed = new MessageEmbed()
+    const StatsEmbed = new EmbedBuilder()
       .setColor("#ff00e4")
       .setAuthor({
         name: "Soap BOT stats",

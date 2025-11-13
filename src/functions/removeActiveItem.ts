@@ -1,8 +1,10 @@
-import SQL from "./SQL.js";
+import prisma from "../lib/prisma.js";
 
 export default async function removeActiveItem(userId: number, itemId: number) {
-  SQL("DELETE FROM active_items WHERE item_id=? AND user_id=?", [
-    itemId,
-    userId,
-  ]);
+  await prisma.activeItem.deleteMany({
+    where: {
+      item_id: itemId,
+      user_id: userId,
+    },
+  });
 }

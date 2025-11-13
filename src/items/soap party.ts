@@ -1,7 +1,7 @@
 import {
   CommandInteraction,
   GuildMember,
-  MessageEmbed,
+  EmbedBuilder,
   MessageActionRow,
   MessageButton,
   Message,
@@ -27,7 +27,7 @@ export default class BotItem extends Item {
       )
     )[0].link;
 
-    const PartyEmbed = new MessageEmbed()
+    const PartyEmbed = new EmbedBuilder()
       .setTitle(`${user.displayName} is hosting a SOAP PARTY!`)
       .setDescription(`Click the button bellow to join!`)
       .setImage(image)

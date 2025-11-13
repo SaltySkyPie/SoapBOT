@@ -1,16 +1,29 @@
 import { Snowflake } from "discord.js";
 import getMysqlDateTime from "./getMysqlDateTime.js";
-import SQL from "./SQL.js";
+import prisma from "../lib/prisma.js";
 
 export default async function putOnCooldown(
   userId: Snowflake,
   commandId: number
 ) {
-  const command = (
-    await SQL("SELECT cooldown FROM commands WHERE id=?", [commandId])
-  )[0];
-  await SQL(
-    "INSERT INTO command_cooldowns (user_id, command_id, expiration) VALUES ((SELECT id FROM users WHERE user_id=?),?,?)",
-    [userId, commandId, getMysqlDateTime(command.cooldown * 1000)]
-  );
+  const [command, user] = await Promise.all([
+    prisma.command.findUnique({
+      where: { id: commandId },
+      select: { cooldown: true },
+    }),
+    prisma.user.findUnique({
+      where: { user_id: userId },
+      select: { id: true },
+    }),
+  ]);
+
+  if (!command || !user) return;
+
+  await prisma.commandCooldown.create({
+    data: {
+      user_id: user.id,
+      command_id: commandId,
+      expiration: new Date(getMysqlDateTime(command.cooldown * 1000)),
+    },
+  });
 }
