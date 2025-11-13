@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember } from "discord.js";
+import { CommandInteraction, ChatInputCommandInteraction, GuildMember } from "discord.js";
 import decodeNumber from "../functions/decodeNumber.js";
 import getBank from "../functions/getBank.js";
 import SQL from "../functions/SQL.js";
@@ -10,7 +10,7 @@ export default class BotItem extends Item {
     super(id, name, description);
   }
 
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const user = interaction.user;
     const specified_amount = interaction.options.getString("amount");
     const amount = specified_amount ? await decodeNumber(specified_amount) : 1;

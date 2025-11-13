@@ -1,11 +1,14 @@
 import {
   CommandInteraction,
+  ChatInputCommandInteraction,
   GuildMember,
   EmbedBuilder,
-  MessageActionRow,
-  MessageButton,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   Message,
   Guild,
+  ComponentType,
 } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
@@ -24,7 +27,7 @@ export default class BotCommand extends Command {
   constructor(id: number, name: string, description: string) {
     super(id, name, description);
   }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const user = interaction.member as GuildMember;
     const target = interaction.options.getMember("user") as GuildMember;
 
@@ -95,11 +98,11 @@ export default class BotCommand extends Command {
       .setImage(image)
       .setColor("#ff00e4");
 
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
         .setCustomId("soap_pickup" + interaction.id)
         .setLabel("PICK UP!")
-        .setStyle("SUCCESS")
+        .setStyle(ButtonStyle.Success)
     );
 
     const dm = new EmbedBuilder()
@@ -122,7 +125,7 @@ export default class BotCommand extends Command {
     })) as Message;
 
     const collector = interaction.channel!.createMessageComponentCollector({
-      componentType: "BUTTON",
+      componentType: ComponentType.Button,
       time: 300000,
     });
     let picked_up = false;
@@ -138,11 +141,11 @@ export default class BotCommand extends Command {
         return;
       }
       picked_up = true;
-      const pickup_row = new MessageActionRow().addComponents(
-        new MessageButton()
+      const pickup_row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
           .setCustomId("soap_pickup" + interaction.id)
           .setLabel("PICKING UP!")
-          .setStyle("SECONDARY")
+          .setStyle(ButtonStyle.Secondary)
           .setDisabled(true)
       );
       reply.edit({ components: [pickup_row] });
@@ -163,14 +166,14 @@ export default class BotCommand extends Command {
         .setImage(image)
         .setColor("#ff00e4");
 
-      const pup_row = new MessageActionRow().addComponents(
-        new MessageButton()
+      const pup_row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
           .setCustomId("soap_daddy" + interaction.id)
           .setLabel("DADDY! 😏")
-          .setStyle("SUCCESS")
+          .setStyle(ButtonStyle.Success)
       );
 
-      const pickup_msg = await interaction.channel!.send({
+      const pickup_msg = await ((interaction.channel) as any).send({
         embeds: [PickUpEmbed],
         components: [pup_row],
       });
@@ -178,7 +181,7 @@ export default class BotCommand extends Command {
       const pickup_collector =
         interaction.channel!.createMessageComponentCollector({
           max: 1,
-          componentType: "BUTTON",
+          componentType: ComponentType.Button,
           time: 10000,
         });
 
@@ -189,16 +192,16 @@ export default class BotCommand extends Command {
         const earned = Math.floor(Math.random() * (1500 - 750 + 1) + 750);
         let points = await getPoints(i.user.id);
         await setPoints(i.user.id, points + earned);
-        const daddy_row = new MessageActionRow().addComponents(
-          new MessageButton()
+        const daddy_row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
             .setCustomId("soap_daddy" + interaction.id)
             .setLabel("DADDY! 😏")
-            .setStyle("SECONDARY")
+            .setStyle(ButtonStyle.Secondary)
             .setDisabled(true)
         );
         pickup_msg.edit({ components: [daddy_row] });
 
-        await interaction.channel!.send(
+        await ((interaction.channel) as any).send(
           `**${
             (i.member as GuildMember).displayName
           }** used the **DADDY** spell and obtained 🧼**${earned.toLocaleString()}**!`
@@ -209,18 +212,18 @@ export default class BotCommand extends Command {
 
       pickup_collector.on("end", async () => {
         const m_earned = Math.floor(Math.random() * (1500 - 750 + 1) + 750);
-        const daddy_row = new MessageActionRow().addComponents(
-          new MessageButton()
+        const daddy_row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
             .setCustomId("soap_daddy" + interaction.id)
             .setLabel("DADDY! 😏")
-            .setStyle("SUCCESS")
+            .setStyle(ButtonStyle.Success)
             .setDisabled(true)
         );
         pickup_msg.edit({ components: [daddy_row] });
         setTimeout(async () => {
           let points = await getPoints(target.id);
           setPoints(target.id, points + m_earned);
-          interaction.channel!.send(
+          ((interaction.channel) as any).send(
             `**${
               target.displayName
             }** has picked up their soap and earned 🧼**${m_earned.toLocaleString()}**!`
@@ -232,7 +235,7 @@ export default class BotCommand extends Command {
 
     collector.on("end", async (collected) => {
       if (!picked_up) {
-        interaction.channel!.send(
+        ((interaction.channel) as any).send(
           `**${target.displayName}** didn't pick up their soap in time. They lost 🧼**500**. :(`
         );
         const result = await getPoints(target.id);
@@ -245,11 +248,11 @@ export default class BotCommand extends Command {
           target,
           "You didn't pick up your soap in time. You lost 🧼**500**. :("
         );
-        const toolaterow = new MessageActionRow().addComponents(
-          new MessageButton()
+        const toolaterow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
             .setCustomId("soap_daddy" + interaction.id)
             .setLabel(`"TOO LATE!"`)
-            .setStyle("SUCCESS")
+            .setStyle(ButtonStyle.Success)
             .setDisabled(true)
         );
         await setSoapStatus(target.id, 0);
@@ -260,10 +263,7 @@ export default class BotCommand extends Command {
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)

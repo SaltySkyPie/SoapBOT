@@ -1,4 +1,5 @@
-import { CommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
+import { CommandInteraction,
+  ChatInputCommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -14,7 +15,7 @@ export default class BotCommand extends Command {
   constructor(id: number, name: string, description: string) {
     super(id, name, description);
   }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const user = interaction.member as GuildMember;
     const mention = interaction.options.getMember("user") as GuildMember;
 
@@ -60,7 +61,7 @@ export default class BotCommand extends Command {
       });
       return false;
     }
-    if (robber.points < min_threshhold) {
+    if (robber!.points < min_threshhold) {
       interaction.reply({
         content: `You need atleast 🧼**${min_threshhold.toLocaleString()}** to rob someone. Imagine being so poor lmao`,
       });
@@ -94,8 +95,8 @@ export default class BotCommand extends Command {
       });
       await dmUser(mention, { embeds: [failDm] });
       await Promise.all([
-        setPoints(mention.id, victim.points + lose),
-        setPoints(user.id, robber.points - lose),
+        setPoints(mention.id, Number(victim.points) + lose),
+        setPoints(user.id, Number(robber!.points) - lose),
       ]);
 
       return true;
@@ -113,10 +114,10 @@ export default class BotCommand extends Command {
         .setDescription(`<#${interaction.channelId}>`);
       await dmUser(mention, { embeds: [successDm] });
 
-      const stolenAmount = Math.round(percent * victim.points);
+      const stolenAmount = Math.round(percent * Number(victim.points));
       await Promise.all([
-        setPoints(mention.id, victim.points - stolenAmount),
-        setPoints(user.id, robber.points + stolenAmount),
+        setPoints(mention.id, Number(victim.points) - stolenAmount),
+        setPoints(user.id, Number(robber!.points) + stolenAmount),
       ]);
       interaction.reply({
         content: `You stole 🧼**${stolenAmount.toLocaleString()}** from **${
@@ -124,7 +125,7 @@ export default class BotCommand extends Command {
         }**! (${Math.round(percent * 100)}% of their total 🧼).`,
       });
     } else {
-      const loss_percentage = parseFloat(await getBaseValue("rob_fail_loss"));
+      const loss_percentage = parseFloat((await getBaseValue("rob_fail_loss"))!);
 
       const failDm = new EmbedBuilder()
         .setTitle(
@@ -134,10 +135,10 @@ export default class BotCommand extends Command {
         .setDescription(`<#${interaction.channelId}>`);
       await dmUser(mention, { embeds: [failDm] });
 
-      const lostAmount = Math.round(loss_percentage * robber.points);
+      const lostAmount = Math.round(loss_percentage * Number(robber!.points));
       await Promise.all([
-        setPoints(mention.id, victim.points + lostAmount),
-        setPoints(user.id, robber.points - lostAmount),
+        setPoints(mention.id, Number(victim.points) + lostAmount),
+        setPoints(user.id, Number(robber!.points) - lostAmount),
       ]);
 
       interaction.reply({
@@ -150,10 +151,7 @@ export default class BotCommand extends Command {
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)

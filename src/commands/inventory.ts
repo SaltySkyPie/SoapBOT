@@ -1,10 +1,13 @@
 import {
   CommandInteraction,
+  ChatInputCommandInteraction,
   EmbedBuilder,
-  MessageActionRow,
-  MessageButton,
+  ActionRowBuilder,
+  ButtonBuilder,
   Message,
   GuildMember,
+  ButtonStyle,
+  ComponentType,
 } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
@@ -16,7 +19,7 @@ export default class BotCommand extends Command {
   constructor(id: number, name: string, description: string) {
     super(id, name, description);
   }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     let user = interaction.options.getMember("user") as GuildMember;
     if (!user) {
       user = interaction.member as GuildMember;
@@ -28,7 +31,7 @@ export default class BotCommand extends Command {
     let currentPage = 0;
     const count: any = await SQL(
       `SELECT count(id) as count FROM inventory WHERE user_id=? AND amount>0`,
-      [db_user.id]
+      [db_user!.id]
     );
     const maxPage = Math.ceil(count[0].count / 5) - 1;
     const getItems = async (page = 0) => {
@@ -36,7 +39,7 @@ export default class BotCommand extends Command {
         `SELECT *, inventory.amount FROM items INNER JOIN inventory ON items.id=inventory.item_id WHERE inventory.user_id=? AND inventory.amount>0 LIMIT ${
           page * 5
         }, 5`,
-        [db_user.id]
+        [db_user!.id]
       );
       return all;
     };
@@ -65,15 +68,15 @@ export default class BotCommand extends Command {
       );
     });
 
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
         .setCustomId("inv_previous" + interaction.id)
         .setLabel("◀")
-        .setStyle("SECONDARY"),
-      new MessageButton()
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
         .setCustomId("inv_next" + interaction.id)
         .setLabel("▶")
-        .setStyle("SECONDARY")
+        .setStyle(ButtonStyle.Secondary)
     );
 
     const reply = (await interaction.reply({
@@ -83,7 +86,7 @@ export default class BotCommand extends Command {
     })) as Message;
 
     const collector = interaction.channel!.createMessageComponentCollector({
-      componentType: "BUTTON",
+      componentType: ComponentType.Button,
       idle: 20000,
     });
     collector.on("collect", async (i) => {
@@ -134,16 +137,16 @@ export default class BotCommand extends Command {
 
     collector.on("end", (collected) => {
       //interaction.channel.send(`Collected ${collected.size} interactions.`);
-      const end = new MessageActionRow().addComponents(
-        new MessageButton()
+      const end = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
           .setCustomId("inv_previous" + interaction.id)
           .setLabel("◀")
-          .setStyle("SECONDARY")
+          .setStyle(ButtonStyle.Secondary)
           .setDisabled(true),
-        new MessageButton()
+        new ButtonBuilder()
           .setCustomId("inv_next" + interaction.id)
           .setLabel("▶")
-          .setStyle("SECONDARY")
+          .setStyle(ButtonStyle.Secondary)
           .setDisabled(true)
       );
       reply.edit({ components: [end] });
@@ -152,10 +155,7 @@ export default class BotCommand extends Command {
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)

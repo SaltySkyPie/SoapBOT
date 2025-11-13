@@ -2,9 +2,11 @@ import {
   CommandInteraction,
   GuildMember,
   EmbedBuilder,
-  MessageActionRow,
-  MessageButton,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   Message,
+  ComponentType,
 } from "discord.js";
 import getPoints from "../functions/getPoints.js";
 import setPoints from "../functions/setPoints.js";
@@ -33,11 +35,11 @@ export default class BotItem extends Item {
       .setImage(image)
       .setColor("#ff00e4");
 
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
         .setCustomId("party_join" + interaction.id)
         .setLabel("JOIN THE PARTY!")
-        .setStyle("SUCCESS")
+        .setStyle(ButtonStyle.Success)
     );
 
     const reply = (await interaction.reply({
@@ -47,7 +49,7 @@ export default class BotItem extends Item {
     })) as Message;
 
     const collector = interaction.channel!.createMessageComponentCollector({
-      componentType: "BUTTON",
+      componentType: ComponentType.Button,
       time: 30000,
     });
     let joined = 0;
@@ -68,7 +70,7 @@ export default class BotItem extends Item {
       }
       const earned = Math.round(Math.random() * 900) + 100;
       await setPoints(i.user.id, (await getPoints(i.user.id)) + earned);
-      interaction.channel!.send(
+      ((interaction.channel) as any).send(
         `**${
           (i.member as GuildMember).displayName
         }** joined the **SOAP PARTY** and obtained **🧼${earned.toLocaleString()}**!`
@@ -78,15 +80,15 @@ export default class BotItem extends Item {
     });
 
     collector.on("end", (collected) => {
-      const row = new MessageActionRow().addComponents(
-        new MessageButton()
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
           .setCustomId("party_join" + interaction.id)
           .setLabel("PARTY ENDED!")
-          .setStyle("DANGER")
+          .setStyle(ButtonStyle.Danger)
           .setDisabled(true)
       );
       reply.edit({ content: "Party ended :(", components: [row] });
-      interaction.channel!.send(
+      ((interaction.channel) as any).send(
         `**${
           user.displayName
         }**'s party ended with total of **${joined.toLocaleString()}** participants!`

@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction, ChatInputCommandInteraction } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -14,7 +14,7 @@ export default class BotCommand extends Command {
   constructor(id: number, name: string, description: string) {
     super(id, name, description);
   }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     // get user + item data
 
     const [user, item] = await Promise.all([
@@ -48,7 +48,7 @@ export default class BotCommand extends Command {
     );
     if (!item_ownership.length || item_ownership[0].amount < amount) {
       interaction.reply({
-        content: `You don't even have that much of ${item.item_name} lol...`,
+        content: `You don't even have that much of ${item.item_name!} lol...`,
       });
       return false;
     }
@@ -71,7 +71,7 @@ export default class BotCommand extends Command {
       const check = await addAdctiveItem(
         target.id,
         item.id,
-        item.active_duration
+        Number(item.active_duration)
       );
 
       if (!check) {
@@ -80,7 +80,7 @@ export default class BotCommand extends Command {
       }
       //execute + insert record
 
-      const i: BotItem = client.items.get(item.item_name.toLowerCase());
+      const i: BotItem = client.items.get(item.item_name!.toLowerCase());
 
       if (!i) {
         interaction.reply({ content: `This item isn't even useable lol` });
@@ -101,7 +101,7 @@ export default class BotCommand extends Command {
       const check = await addAdctiveItem(
         user.id,
         item.id,
-        item.active_duration
+        Number(item.active_duration)
       );
 
       if (!check) {
@@ -110,7 +110,7 @@ export default class BotCommand extends Command {
       }
       //execute + insert record
 
-      const i: BotItem = client.items.get(item.item_name.toLowerCase());
+      const i: BotItem = client.items.get(item.item_name!.toLowerCase());
 
       if (!i) {
         interaction.reply({ content: `This item isn't even usable lol` });
@@ -129,7 +129,7 @@ export default class BotCommand extends Command {
     // if useable -> execute
 
     if (item.useable) {
-      const i: BotItem = client.items.get(item.item_name.toLowerCase());
+      const i: BotItem = client.items.get(item.item_name!.toLowerCase());
 
       if (!i) {
         interaction.reply({ content: `This item isn't even usable lol` });
@@ -151,10 +151,7 @@ export default class BotCommand extends Command {
     return false;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     const items = await SQL(
       "SELECT * FROM items WHERE useable=1 ORDER BY item_name"
     );
@@ -169,7 +166,7 @@ export default class BotCommand extends Command {
           .setRequired(true);
 
         for (const item of items) {
-          option.addChoice(item.item_name, item.item_name.toLowerCase());
+          option.addChoices({ name: item.item_name!, value: item.item_name!.toLowerCase() });
         }
 
         return option;

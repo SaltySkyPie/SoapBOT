@@ -1,4 +1,5 @@
-import { CommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
+import { CommandInteraction,
+  ChatInputCommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -13,7 +14,7 @@ export default class BotCommand extends Command {
   constructor(id: number, name: string, description: string) {
     super(id, name, description);
   }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const user = interaction.member as GuildMember;
     const mention = interaction.options.getMember("user") as GuildMember;
 
@@ -61,29 +62,26 @@ export default class BotCommand extends Command {
       getUserData(user.id),
     ]);
 
-    const tax = parseFloat(await getBaseValue("give_tax"));
+    const tax = parseFloat((await getBaseValue("give_tax"))!);
     console.log("tax", tax);
 
     await Promise.all([
-      setPoints(origin.user_id, origin.points - amount),
-      setPoints(target.user_id, target.points + (amount - amount * tax)),
+      setPoints(origin!.user_id!, Number(origin!.points) - amount),
+      setPoints(target!.user_id!, Number(target!.points) + (amount - amount * tax)),
     ]);
 
     interaction.reply({
       content: `You gave 🧼**${amount.toLocaleString()}** to **${
         mention.displayName
       }**. After ${tax * 100}% tax they now have 🧼**${
-        target.points + (amount - amount * tax)
-      }** and you have 🧼**${origin.points - amount}**.`,
+        Number(target!.points) + (amount - amount * tax)
+      }** and you have 🧼**${Number(origin!.points) - amount}**.`,
     });
 
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)

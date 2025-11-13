@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction, ChatInputCommandInteraction } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import Command from "../types/Command.js";
@@ -13,7 +13,7 @@ export default class BotCommand extends Command {
   constructor(id: number, name: string, description: string) {
     super(id, name, description);
   }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const item_name = interaction.options.getString("item");
     const specified_amount = interaction.options.getString("amount");
     const amount = specified_amount ? await decodeNumber(specified_amount) : 1;
@@ -40,7 +40,7 @@ export default class BotCommand extends Command {
       return false;
     }
 
-    if (user.points < item.buy_cost * amount) {
+    if (user!.points < (item.buy_cost || 0) * amount) {
       interaction.reply({
         content: `You don't have enough 🧼 to purchase this item :(`,
       });
@@ -61,8 +61,8 @@ export default class BotCommand extends Command {
       ]);
     }
 
-    setPoints(user.user_id, user.points - item.buy_cost * amount);
-    addItem(user.id, item.id, amount);
+    setPoints(user!.user_id!, Number(user!.points) - Number(item.buy_cost || 0) * amount);
+    addItem(user!.id, item.id, amount);
 
     interaction.reply({
       content: `You bought ${amount.toLocaleString()}x **${item.item_name}**`,
@@ -71,10 +71,7 @@ export default class BotCommand extends Command {
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     const items = await SQL(
       "SELECT * FROM items WHERE buyable=1 ORDER BY item_name"
     );
@@ -89,7 +86,7 @@ export default class BotCommand extends Command {
           .setRequired(true);
 
         for (const item of items) {
-          option.addChoice(item.item_name, item.item_name.toLowerCase());
+          option.addChoices({ name: item.item_name, value: item.item_name.toLowerCase() });
         }
 
         return option;

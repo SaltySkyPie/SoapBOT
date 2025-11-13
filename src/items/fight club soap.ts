@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember } from "discord.js";
+import { CommandInteraction, ChatInputCommandInteraction, GuildMember } from "discord.js";
 import SoapClient from "../types/client";
 import Item from "../types/Item.js";
 
@@ -7,7 +7,7 @@ export default class BotItem extends Item {
     super(id, name, description);
   }
 
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     interaction.reply({
       content: `**${
         (interaction.member as GuildMember).displayName

@@ -34,7 +34,7 @@ export default class BotCommand extends Command {
       .setColor("#ff00e4")
       .setAuthor({
         name: `Leaderboard for ${guild!.name!}`,
-        iconURL: guild!.iconURL({ dynamic: true })!,
+        iconURL: guild!.iconURL({ })!,
       });
 
     for (const position of member_points) {
@@ -60,10 +60,7 @@ export default class BotCommand extends Command {
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description);

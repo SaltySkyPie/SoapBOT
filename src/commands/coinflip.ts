@@ -1,5 +1,6 @@
 import {
   CommandInteraction,
+  ChatInputCommandInteraction,
   GuildMember,
   Message,
   EmbedBuilder,
@@ -15,7 +16,7 @@ export default class BotCommand extends Command {
   constructor(id: number, name: string, description: string) {
     super(id, name, description);
   }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const success = Math.round(Math.random());
     const avatar = interaction.user.displayAvatarURL();
 
@@ -103,10 +104,7 @@ export default class BotCommand extends Command {
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
@@ -115,8 +113,10 @@ export default class BotCommand extends Command {
           .setName("side")
           .setDescription("Side you want to bet on")
           .setRequired(true)
-          .addChoice("Heads", "heads")
-          .addChoice("Tails", "tails")
+          .addChoices(
+            { name: "Heads", value: "heads" },
+            { name: "Tails", value: "tails" }
+          )
       )
       .addStringOption((option) =>
         option

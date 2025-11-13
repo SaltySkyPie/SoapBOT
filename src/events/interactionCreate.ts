@@ -18,12 +18,12 @@ export default async function execute(
   await checkUserCreation(interaction.user.id);
 
   if (interaction.isCommand()) {
-    const i: CommandInteraction = interaction as CommandInteraction;
+    const i = interaction.isChatInputCommand() ? interaction : (interaction as any);
 
     const command: BotCommand = client.commands.get(interaction.commandName);
     if (!command) return;
 
-    const u = i.options.getUser("user");
+    const u = interaction.isChatInputCommand() ? i.options.getUser("user") : null;
     await Promise.all([
       u ? checkUserCreation(u.id) : null,
       prisma.activeItem.deleteMany({

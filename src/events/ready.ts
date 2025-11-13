@@ -22,6 +22,6 @@ async function updateStatus(client: SoapClient) {
   );
   client.user?.setPresence({
     activities: [{ name: `${presence}`, type: ActivityType.Playing }],
-    status: status as PresenceUpdateStatus,
+    status: status as any,
   });
 }

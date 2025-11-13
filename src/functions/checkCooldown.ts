@@ -26,7 +26,7 @@ export default async function checkCooldown(
 
   if (cooldown && cooldown.expiration) {
     const remaining = getTimeRemaining(
-      cooldown.expiration,
+      cooldown.expiration.toISOString(),
       getMysqlDateTime()
     );
 

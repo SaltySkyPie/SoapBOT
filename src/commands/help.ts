@@ -1,9 +1,11 @@
 import {
   CommandInteraction,
   EmbedBuilder,
-  MessageActionRow,
-  MessageButton,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   Message,
+  ComponentType,
 } from "discord.js";
 import SoapClient from "../types/client";
 import { SlashCommandBuilder } from "@discordjs/builders";
@@ -43,15 +45,15 @@ export default class BotCommand extends Command {
       );
     });
 
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
         .setCustomId("help_previous" + interaction.id)
         .setLabel("◀")
-        .setStyle("SECONDARY"),
-      new MessageButton()
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
         .setCustomId("help_next" + interaction.id)
         .setLabel("▶")
-        .setStyle("SECONDARY")
+        .setStyle(ButtonStyle.Secondary)
     );
     const reply = (await interaction.reply({
       embeds: [HelpEmbed],
@@ -59,7 +61,7 @@ export default class BotCommand extends Command {
       fetchReply: true,
     })) as Message;
     const collector = interaction.channel!.createMessageComponentCollector({
-      componentType: "BUTTON",
+      componentType: ComponentType.Button,
       idle: 20000,
     });
     collector.on("collect", async (i) => {
@@ -107,16 +109,16 @@ export default class BotCommand extends Command {
 
     collector.on("end", (collected) => {
       //message.channel.send(`Collected ${collected.size} interactions.`);
-      const end = new MessageActionRow().addComponents(
-        new MessageButton()
+      const end = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
           .setCustomId("help_previous" + interaction.id)
           .setLabel("◀")
-          .setStyle("SECONDARY")
+          .setStyle(ButtonStyle.Secondary)
           .setDisabled(true),
-        new MessageButton()
+        new ButtonBuilder()
           .setCustomId("help_next" + interaction.id)
           .setLabel("▶")
-          .setStyle("SECONDARY")
+          .setStyle(ButtonStyle.Secondary)
           .setDisabled(true)
       );
       reply.edit({ components: [end] });
@@ -125,10 +127,7 @@ export default class BotCommand extends Command {
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description);
