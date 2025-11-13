@@ -12,39 +12,48 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  user_id      String   @unique @db.VarChar(255)
+  id           BigInt   @id @default(autoincrement())
+  user_id      String?  @db.VarChar(50)
   points       BigInt   @default(0)
   stash        BigInt   @default(0)
-  max_stash    BigInt   @default(0)
-  tag          String?  @db.VarChar(255)
-  avatar_url   String?  @db.VarChar(512)
-  soap_status  String?  @db.Text
+  max_stash    BigInt   @default(25000)
+  permissions  Int      @default(0)
+  soap_status  Int      @default(0) @db.SmallInt
+  passive      Int      @default(0) @db.TinyInt
   created_at   DateTime @default(now())
+  avatar_url   String?  @db.LongText
+  tag          String?  @db.LongText
+  email        String?  @db.LongText
 
-  bans              Ban[]
-  inventory         Inventory[]
-  activeItems       ActiveItem[]
-  commandCooldowns  CommandCooldown[]
-  lovesAsUser1      Love[]          @relation("User1")
-  lovesAsUser2      Love[]          @relation("User2")
+  bans                Ban[]                @relation("UserBans")
+  adminBans           Ban[]                @relation("AdminBans")
+  inventory           Inventory[]
+  activeItems         ActiveItem[]
+  commandCooldowns    CommandCooldown[]
+  lovesAsUser1        Love[]               @relation("User1")
+  lovesAsUser2        Love[]               @relation("User2")
+  targetedWebRewards  WebReward[]
+  webRewardClaims     WebRewardClaim[]
 
   @@map("users")
 }
 
 model Item {
-  id          Int      @id @default(autoincrement())
-  item_name   String   @unique @db.VarChar(255)
-  description String?  @db.Text
-  buyable     Int      @default(0) @db.TinyInt
-  useable     Int      @default(0) @db.TinyInt
-  shop        Int      @default(0) @db.TinyInt
-  stock       Int?
-  price       Int?
-  buy_cost    Int      @default(0)
-  sell_cost   Int      @default(0)
-  use_timer   Int      @default(0)
-  created_at  DateTime @default(now())
+  id               BigInt  @id @default(autoincrement())
+  item_name        String? @db.VarChar(50)
+  description      String? @db.VarChar(500)
+  buy_cost         Int?
+  sell_cost        Int?
+  buyable          Int?    @db.TinyInt
+  sellable         Int?    @db.TinyInt
+  useable          Int     @default(0) @db.TinyInt
+  multiple_usable  Int     @default(0) @db.TinyInt
+  shop             Int     @default(0) @db.TinyInt
+  stock            Int     @default(0)
+  activable        Int     @default(0) @db.TinyInt
+  active_duration  BigInt  @default(0)
+  targetable       Int     @default(0) @db.TinyInt
+  item_image       String? @db.VarChar(500)
 
   inventory   Inventory[]
   activeItems ActiveItem[]
@@ -53,25 +62,24 @@ model Item {
 }
 
 model Inventory {
-  id      Int    @id @default(autoincrement())
-  user_id Int
-  item_id Int
-  amount  BigInt @default(0)
+  id      BigInt @id @default(autoincrement())
+  amount  Int?
+  user_id BigInt
+  item_id BigInt
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  item Item @relation(fields: [item_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "item_ownership_users_FK")
+  item Item @relation(fields: [item_id], references: [id], onDelete: Cascade, map: "item_ownership_items_FK")
 
-  @@unique([user_id, item_id])
-  @@index([user_id])
-  @@index([item_id])
+  @@index([item_id], map: "item_ownership_items_FK")
+  @@index([user_id], map: "item_ownership_users_FK")
   @@map("inventory")
 }
 
 model Command {
-  id          Int      @id @default(autoincrement())
-  command     String   @unique @db.VarChar(255)
-  description String?  @db.Text
-  cooldown    Int      @default(0)
+  id          BigInt   @id @default(autoincrement())
+  command     String   @db.VarChar(255)
+  description String   @db.LongText
+  cooldown    BigInt   @default(0)
 
   cooldowns CommandCooldown[]
 
@@ -79,68 +87,111 @@ model Command {
 }
 
 model Ban {
-  id      Int     @id @default(autoincrement())
-  user_id Int
-  reason  String? @db.Text
+  id        BigInt   @id @default(autoincrement())
+  reason    String   @default("No reason") @db.VarChar(100)
+  user_id   BigInt
+  admin_id  BigInt
+  issued_on DateTime @default(now())
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user  User @relation("UserBans", fields: [user_id], references: [id], onDelete: Cascade, map: "bans_users_FK")
+  admin User @relation("AdminBans", fields: [admin_id], references: [id], onDelete: Cascade, map: "bans_users_admin_FK")
 
-  @@index([user_id])
+  @@index([admin_id], map: "bans_users_admin_FK")
+  @@index([user_id], map: "bans_users_FK")
   @@map("bans")
 }
 
 model Love {
-  id        Int       @id @default(autoincrement())
-  user1_id  Int
-  user2_id  Int
+  id        BigInt   @id @default(autoincrement())
   rating    Int
-  expires   DateTime?
+  user1_id  BigInt
+  user2_id  BigInt
+  expires   DateTime
 
-  user1 User @relation("User1", fields: [user1_id], references: [id], onDelete: Cascade)
-  user2 User @relation("User2", fields: [user2_id], references: [id], onDelete: Cascade)
+  user1 User @relation("User1", fields: [user1_id], references: [id], onDelete: Cascade, map: "love_users_user1")
+  user2 User @relation("User2", fields: [user2_id], references: [id], onDelete: Cascade, map: "love_users_user2")
 
-  @@index([user1_id, user2_id])
+  @@index([user1_id], map: "love_users_user1")
+  @@index([user2_id], map: "love_users_user2")
   @@map("love")
 }
 
 model ActiveItem {
-  id              Int      @id @default(autoincrement())
-  user_id         Int
-  item_id         Int
+  id              BigInt   @id @default(autoincrement())
+  user_id         BigInt
+  item_id         BigInt
   expiration_date DateTime
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  item Item @relation(fields: [item_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "active_items_users_FK")
+  item Item @relation(fields: [item_id], references: [id], onDelete: Cascade, map: "active_items_items_FK")
 
-  @@index([user_id, item_id])
+  @@index([item_id], map: "active_items_items_FK")
+  @@index([user_id], map: "active_items_users_FK")
   @@map("active_items")
 }
 
 model CommandCooldown {
-  id         Int      @id @default(autoincrement())
-  command_id Int
-  user_id    Int
-  expiration DateTime
+  id         BigInt    @id @default(autoincrement())
+  user_id    BigInt
+  command_id BigInt
+  expiration DateTime?
 
-  command Command @relation(fields: [command_id], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  command Command @relation(fields: [command_id], references: [id], onDelete: Cascade, map: "cmdcd_commandsFK")
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "cmdcd_usersFK")
 
-  @@index([command_id, user_id])
+  @@index([command_id], map: "cmdcd_commandsFK")
+  @@index([user_id], map: "cmdcd_usersFK")
   @@map("command_cooldowns")
 }
 
 model Gif {
-  id      Int    @id @default(autoincrement())
-  link    String @db.VarChar(512)
-  purpose Int    @db.TinyInt
+  id      Int     @id @default(autoincrement())
+  link    String? @db.VarChar(1000)
+  purpose Int     @default(0) @db.SmallInt
 
-  @@index([purpose])
   @@map("gifs")
 }
 
 model KillMessage {
-  id      Int    @id @default(autoincrement())
-  message String @db.Text
+  id      BigInt @id @default(autoincrement())
+  message String @db.VarChar(500)
 
   @@map("kill_msg")
+}
+
+model BaseValue {
+  value   String @id @db.VarChar(50)
+  content String @db.LongText
+
+  @@map("base_values")
+}
+
+model WebReward {
+  id            BigInt @id @default(autoincrement())
+  reward_name   String @db.VarChar(100)
+  description   String @db.VarChar(500)
+  contents      String @db.LongText
+  target        BigInt @default(0)
+  cooldown      BigInt @default(-1)
+  reward_claims Int    @default(1)
+
+  targetUser User               @relation(fields: [target], references: [id], onDelete: Cascade, map: "web_rewards_users_FK")
+  claims     WebRewardClaim[]
+
+  @@index([target], map: "web_rewards_users_FK")
+  @@map("web_rewards")
+}
+
+model WebRewardClaim {
+  id         BigInt   @id @default(autoincrement())
+  user_id    BigInt
+  reward_id  BigInt
+  expiration DateTime @default(dbgenerated("'9999-12-31 23:59:59'"))
+
+  user   User      @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "web_rewards_claims_users_FK")
+  reward WebReward @relation(fields: [reward_id], references: [id], onDelete: Cascade, map: "web_rewards_claims_web_rewards_FK")
+
+  @@index([reward_id], map: "web_rewards_claims_web_rewards_FK")
+  @@index([user_id], map: "web_rewards_claims_users_FK")
+  @@map("web_rewards_claims")
 }

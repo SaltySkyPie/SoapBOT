@@ -1,8 +1,9 @@
-import SQL from "./SQL.js";
+import prisma from "../lib/prisma.js";
 
 export default async function getBaseValue(name: string) {
-  const content = await SQL("SELECT content FROM base_values WHERE value=?", [
-    name,
-  ]);
-  return content.length ? content[content.length - 1].content : null;
+  const baseValue = await prisma.baseValue.findUnique({
+    where: { value: name },
+    select: { content: true },
+  });
+  return baseValue?.content || null;
 }

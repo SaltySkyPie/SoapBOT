@@ -6,5 +6,5 @@ export default async function getSoapstatus(userId: Snowflake) {
     where: { user_id: userId },
     select: { soap_status: true },
   });
-  return user?.soap_status || null;
+  return user?.soap_status ?? 0;
 }

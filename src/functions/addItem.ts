@@ -1,32 +1,27 @@
 import prisma from "../lib/prisma.js";
 
 export default async function addItem(
-  user_id: number | string,
-  item_id: number | string,
+  user_id: number | bigint | string,
+  item_id: number | bigint | string,
   count: number
 ) {
-  const userId = typeof user_id === 'string' ? parseInt(user_id) : user_id;
-  const itemId = typeof item_id === 'string' ? parseInt(item_id) : item_id;
+  const userId = BigInt(user_id);
+  const itemId = BigInt(item_id);
 
-  const existing = await prisma.inventory.findUnique({
+  const existing = await prisma.inventory.findFirst({
     where: {
-      user_id_item_id: {
-        user_id: userId,
-        item_id: itemId,
-      },
+      user_id: userId,
+      item_id: itemId,
     },
   });
 
   if (existing) {
     await prisma.inventory.update({
       where: {
-        user_id_item_id: {
-          user_id: userId,
-          item_id: itemId,
-        },
+        id: existing.id,
       },
       data: {
-        amount: Number(existing.amount) + count,
+        amount: (existing.amount || 0) + count,
       },
     });
   } else {

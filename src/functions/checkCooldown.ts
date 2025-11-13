@@ -5,7 +5,7 @@ import prisma from "../lib/prisma.js";
 
 export default async function checkCooldown(
   userId: Snowflake,
-  commandId: number
+  commandId: number | bigint
 ) {
   const user = await prisma.user.findUnique({
     where: { user_id: userId },
@@ -17,14 +17,14 @@ export default async function checkCooldown(
   const now = new Date(getMysqlDateTime());
   const cooldown = await prisma.commandCooldown.findFirst({
     where: {
-      command_id: commandId,
+      command_id: BigInt(commandId),
       user_id: user.id,
       expiration: { gt: now },
     },
     orderBy: { id: 'desc' },
   });
 
-  if (cooldown) {
+  if (cooldown && cooldown.expiration) {
     const remaining = getTimeRemaining(
       cooldown.expiration,
       getMysqlDateTime()

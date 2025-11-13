@@ -4,11 +4,11 @@ import prisma from "../lib/prisma.js";
 
 export default async function putOnCooldown(
   userId: Snowflake,
-  commandId: number
+  commandId: number | bigint
 ) {
   const [command, user] = await Promise.all([
     prisma.command.findUnique({
-      where: { id: commandId },
+      where: { id: BigInt(commandId) },
       select: { cooldown: true },
     }),
     prisma.user.findUnique({
@@ -22,8 +22,8 @@ export default async function putOnCooldown(
   await prisma.commandCooldown.create({
     data: {
       user_id: user.id,
-      command_id: commandId,
-      expiration: new Date(getMysqlDateTime(command.cooldown * 1000)),
+      command_id: BigInt(commandId),
+      expiration: new Date(getMysqlDateTime(Number(command.cooldown) * 1000)),
     },
   });
 }

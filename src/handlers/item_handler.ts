@@ -17,9 +17,9 @@ export default async function handle(client: SoapClient) {
       where: { item_name: item.split(".")[0] },
       select: { id: true, item_name: true, description: true },
     });
-    if (!db_item) continue;
+    if (!db_item || !db_item.item_name) continue;
     const i: BotItem = new it.default(
-      db_item.id,
+      Number(db_item.id),
       db_item.item_name.toLowerCase(),
       db_item.description || ""
     );

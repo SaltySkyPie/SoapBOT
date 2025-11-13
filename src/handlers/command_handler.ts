@@ -22,9 +22,9 @@ export default async function handle(client: SoapClient) {
     });
     if (!db_command) continue;
     const c: BotCommand = new cmd.default(
-      db_command.id,
+      Number(db_command.id),
       db_command.command,
-      db_command.description || ""
+      db_command.description
     );
 
     client.commands.set(c.name, c);
