@@ -31,7 +31,7 @@ export default class Rob extends Command {
       return false;
     }
 
-    if ((await getSoapStatus(user.id)) != 0) {
+    if ((await getSoapStatus(user.id)) !== 0) {
       interaction.reply({ content: `You need to pick up your soap first :smirk:` });
       return false;
     }

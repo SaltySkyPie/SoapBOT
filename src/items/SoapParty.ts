@@ -25,7 +25,7 @@ export default class SoapParty extends Item {
   // Usage properties
   readonly useable = true;
 
-  async execute(client: SoapClient, interaction: ChatInputCommandInteraction, amount: number) {
+  async execute(_client: SoapClient, interaction: ChatInputCommandInteraction, _amount: number) {
     const user = interaction.member as GuildMember;
 
     const partyGifs = await prisma.gifs.findMany({ where: { purpose: 2 } });

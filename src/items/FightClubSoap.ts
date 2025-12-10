@@ -16,7 +16,7 @@ export default class FightClubSoap extends Item {
   readonly targetable = true;
   readonly activeDuration = 300; // 5 minutes
 
-  async execute(client: SoapClient, interaction: ChatInputCommandInteraction, amount: number) {
+  async execute(_client: SoapClient, interaction: ChatInputCommandInteraction, _amount: number) {
     const user = interaction.member as GuildMember;
     const target = interaction.options.getMember("user") as GuildMember;
 

@@ -53,7 +53,7 @@ export default class Coinflip extends Command {
 
     const result_image = success
       ? "https://cdn.saltyskypie.com/soapbot/gifs/flip-success.gif"
-      : side.toLowerCase() == "heads"
+      : side.toLowerCase() === "heads"
         ? "https://cdn.saltyskypie.com/soapbot/gifs/heads-fail.gif"
         : "https://cdn.saltyskypie.com/soapbot/gifs/tails-fail.gif";
 

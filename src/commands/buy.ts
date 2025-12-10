@@ -42,14 +42,14 @@ export default class Buy extends Command {
       return false;
     }
 
-    if (item.stock < amount && item.stock != -1) {
+    if (item.stock < amount && item.stock !== -1) {
       interaction.reply({
         content: `There isn't enough **${item.item_name}** in stock. (Current stock: ${item.stock})`,
       });
       return false;
     }
 
-    if (item.stock != -1) {
+    if (item.stock !== -1) {
       await prisma.items.update({
         where: { id: item.id },
         data: { stock: item.stock - amount },

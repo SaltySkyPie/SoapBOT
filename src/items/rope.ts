@@ -15,7 +15,7 @@ export default class Rope extends Item {
   readonly activable = true;
   readonly activeDuration = 3600; // 1 hour
 
-  async execute(client: SoapClient, interaction: ChatInputCommandInteraction, amount: number) {
+  async execute(_client: SoapClient, interaction: ChatInputCommandInteraction, _amount: number) {
     interaction.reply({
       content: `You used **Rope**! Next time someone tries to drop your soap they'll automatically fail.`,
     });

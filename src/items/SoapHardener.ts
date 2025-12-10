@@ -15,7 +15,7 @@ export default class SoapHardener extends Item {
   readonly activable = true;
   readonly activeDuration = 3600; // 1 hour
 
-  async execute(client: SoapClient, interaction: ChatInputCommandInteraction, amount: number) {
+  async execute(_client: SoapClient, interaction: ChatInputCommandInteraction, _amount: number) {
     interaction.reply({
       content: `You used **Soap Hardener**! Next time someone tries to steal from you, they'll automatically fail.`,
     });

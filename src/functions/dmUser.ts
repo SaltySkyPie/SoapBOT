@@ -5,7 +5,7 @@ export default async function dmUser(user: GuildMember | User, message: any) {
     await user.createDM(true);
     user.send(message);
     return;
-  } catch (e) {
+  } catch (_e) {
     return;
   }
 }

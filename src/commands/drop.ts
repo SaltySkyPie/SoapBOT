@@ -45,12 +45,12 @@ export default class Drop extends Command {
       getSoapStatus(target.id),
     ]);
 
-    if (userSoapStatus != 0) {
+    if (userSoapStatus !== 0) {
       interaction.reply({ content: `You need to pick up your soap first...` });
       return false;
     }
 
-    if (targetSoapStatus != 0) {
+    if (targetSoapStatus !== 0) {
       interaction.reply({ content: `Do you not see their soap on the ground already?` });
       return false;
     }

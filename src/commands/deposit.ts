@@ -38,7 +38,7 @@ export default class Deposit extends Command {
       return false;
     }
 
-    if (currentStashBalance == maxStashBalance) {
+    if (currentStashBalance === maxStashBalance) {
       interaction.reply({ content: `Your stash is overflowing with foam...` });
       return false;
     }
