@@ -34,7 +34,7 @@ yarn-error.log*
 # vercel
 .vercel
 
-/src/generated/prisma
+/generated/prisma
 
 # docker
 docker-compose.yml

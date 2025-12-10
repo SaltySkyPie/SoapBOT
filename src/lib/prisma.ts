@@ -1,4 +1,4 @@
-import { PrismaClient } from "../generated/prisma/index.js";
+import { PrismaClient } from "../../generated/prisma/index.js";
 import "dotenv/config";
 
 const globalForPrisma = globalThis as unknown as {
