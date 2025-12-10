@@ -1,27 +1,22 @@
-import { CommandInteraction, ChatInputCommandInteraction } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import SQL from "../functions/SQL.js";
+import { Command, SoapClient, Item } from "../core/index.js";
+import prisma from "../lib/prisma.js";
 import getUserData from "../functions/getUserData.js";
 import getItemByName from "../functions/getItemByName.js";
-import addAdctiveItem from "../functions/addActiveItem.js";
-import BotItem from "../items/rope";
+import addActiveItem from "../functions/addActiveItem.js";
 import setItemAmount from "../functions/setItemAmount.js";
-import decodeNumber from "../functions/decodeNumber.js";
+import parseAmount from "../functions/parseAmount.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
+export default class Use extends Command {
+  readonly name = "use";
+  readonly description = "Use an item from your inventory";
+
   async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
-    // get user + item data
-
     const [user, item] = await Promise.all([
       getUserData(interaction.user.id),
       getItemByName(interaction.options.getString("item")!),
     ]);
-    // check item data + item ownership
 
     let amount = 1;
 
@@ -30,33 +25,37 @@ export default class BotCommand extends Command {
       return false;
     }
 
-    // parse amount + check
-
     if (!item.useable) {
       interaction.reply({ content: `This item isnt even usable lol` });
       return false;
     }
 
-    if (item.multiple_usable) {
-      const specified_amount = interaction.options.getString("amount");
-      amount = specified_amount ? await decodeNumber(specified_amount) : 1;
-    }
+    const itemOwnership = await prisma.inventory.findFirst({
+      where: {
+        item_id: item.id,
+        user_id: user.id,
+        amount: { gt: 0 },
+      },
+    });
 
-    const item_ownership = await SQL(
-      "SELECT * FROM inventory WHERE item_id=? AND user_id=? AND amount > ?",
-      [item.id, user.id, 0]
-    );
-    if (!item_ownership.length || item_ownership[0].amount < amount) {
-      interaction.reply({
-        content: `You don't even have that much of ${item.item_name!} lol...`,
-      });
+    if (!itemOwnership) {
+      interaction.reply({ content: `You don't even have any ${item.item_name!} lol...` });
       return false;
     }
 
-    // if targetable -> execute
+    const ownedAmount = itemOwnership.amount!;
+
+    if (item.multiple_usable) {
+      const specifiedAmount = interaction.options.getString("amount");
+      amount = specifiedAmount ? (parseAmount(specifiedAmount, ownedAmount) ?? 1) : 1;
+    }
+
+    if (ownedAmount < amount) {
+      interaction.reply({ content: `You don't even have that much of ${item.item_name!} lol...` });
+      return false;
+    }
 
     if (item.targetable) {
-      // check for already active
       const target = await getUserData(
         interaction.options.getUser("user")?.id
           ? interaction.options.getUser("user")!.id
@@ -68,93 +67,70 @@ export default class BotCommand extends Command {
         return false;
       }
 
-      const check = await addAdctiveItem(
-        target.id,
-        item.id,
-        Number(item.active_duration)
-      );
+      const check = await addActiveItem(target.id, item.id, Number(item.active_duration));
 
       if (!check) {
         interaction.reply({ content: `This item is already active...` });
         return false;
       }
-      //execute + insert record
 
-      const i: BotItem = client.items.get(item.item_name!.toLowerCase());
+      const i: Item = client.items.get(item.item_name!.toLowerCase())!;
 
       if (!i) {
         interaction.reply({ content: `This item isn't even useable lol` });
         return false;
       }
-      if (await i.execute(client, interaction))
-        await setItemAmount(
-          user.id,
-          item.id,
-          item_ownership[0].amount - amount
-        );
+
+      if (await i.execute(client, interaction, amount)) {
+        await setItemAmount(user.id, item.id, ownedAmount - amount);
+      }
       return true;
     }
 
-    // if activable -> execute
-
     if (item.activable) {
-      const check = await addAdctiveItem(
-        user.id,
-        item.id,
-        Number(item.active_duration)
-      );
+      const check = await addActiveItem(user.id, item.id, Number(item.active_duration));
 
       if (!check) {
         interaction.reply({ content: `This item is already active...` });
         return false;
       }
-      //execute + insert record
 
-      const i: BotItem = client.items.get(item.item_name!.toLowerCase());
+      const i: Item = client.items.get(item.item_name!.toLowerCase())!;
 
       if (!i) {
         interaction.reply({ content: `This item isn't even usable lol` });
         return false;
       }
 
-      if (await i.execute(client, interaction))
-        await setItemAmount(
-          user.id,
-          item.id,
-          item_ownership[0].amount - amount
-        );
+      if (await i.execute(client, interaction, amount)) {
+        await setItemAmount(user.id, item.id, ownedAmount - amount);
+      }
       return true;
     }
-
-    // if useable -> execute
 
     if (item.useable) {
-      const i: BotItem = client.items.get(item.item_name!.toLowerCase());
+      const i: Item = client.items.get(item.item_name!.toLowerCase())!;
 
       if (!i) {
         interaction.reply({ content: `This item isn't even usable lol` });
         return false;
       }
 
-      if (await i.execute(client, interaction))
-        await setItemAmount(
-          user.id,
-          item.id,
-          item_ownership[0].amount - amount
-        );
+      if (await i.execute(client, interaction, amount)) {
+        await setItemAmount(user.id, item.id, ownedAmount - amount);
+      }
       return true;
     }
-
-    // else -> not useable return false
 
     interaction.reply({ content: `This item isn't even usable lol` });
     return false;
   }
 
   async getSlash() {
-    const items = await SQL(
-      "SELECT * FROM items WHERE useable=1 ORDER BY item_name"
-    );
+    const items = await prisma.item.findMany({
+      where: { useable: 1 },
+      orderBy: { item_name: "asc" },
+    });
 
     return new SlashCommandBuilder()
       .setName(this.name)
@@ -162,21 +138,18 @@ export default class BotCommand extends Command {
       .addStringOption((option) => {
         option
           .setName("item")
-          .setDescription("Item you want to buy")
+          .setDescription("Item you want to use")
           .setRequired(true);
 
         for (const item of items) {
           option.addChoices({ name: item.item_name!, value: item.item_name!.toLowerCase() });
         }
-
         return option;
       })
       .addStringOption((option) =>
         option
           .setName("amount")
-          .setDescription(
-            "Amount of the selected item you want to use at the same time."
-          )
+          .setDescription("Amount of the selected item you want to use at the same time.")
       )
       .addUserOption((option) =>
         option

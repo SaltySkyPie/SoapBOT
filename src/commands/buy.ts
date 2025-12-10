@@ -1,33 +1,30 @@
-import { CommandInteraction, ChatInputCommandInteraction } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import SQL from "../functions/SQL.js";
-import decodeNumber from "../functions/decodeNumber.js";
+import { Command, SoapClient } from "../core/index.js";
+import prisma from "../lib/prisma.js";
+import parseAmount from "../functions/parseAmount.js";
 import getUserData from "../functions/getUserData.js";
 import getItemByName from "../functions/getItemByName.js";
 import setPoints from "../functions/setPoints.js";
 import addItem from "../functions/addItem.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
-    const item_name = interaction.options.getString("item");
-    const specified_amount = interaction.options.getString("amount");
-    const amount = specified_amount ? await decodeNumber(specified_amount) : 1;
+export default class Buy extends Command {
+  readonly name = "buy";
+  readonly description = "Buy an item from the shop";
 
-    if (!item_name) {
-      interaction.reply({
-        content: `You need to specify what you actually wanna buy...`,
-      });
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
+    const itemName = interaction.options.getString("item");
+    const specifiedAmount = interaction.options.getString("amount");
+    const amount = specifiedAmount ? (parseAmount(specifiedAmount, 999999) ?? 1) : 1;
+
+    if (!itemName) {
+      interaction.reply({ content: `You need to specify what you actually wanna buy...` });
       return false;
     }
 
     const [user, item] = await Promise.all([
       getUserData(interaction.user.id),
-      getItemByName(item_name),
+      getItemByName(itemName),
     ]);
 
     if (!item) {
@@ -41,9 +38,7 @@ export default class BotCommand extends Command {
     }
 
     if (user!.points < (item.buy_cost || 0) * amount) {
-      interaction.reply({
-        content: `You don't have enough 🧼 to purchase this item :(`,
-      });
+      interaction.reply({ content: `You don't have enough 🧼 to purchase this item :(` });
       return false;
     }
 
@@ -55,26 +50,24 @@ export default class BotCommand extends Command {
     }
 
     if (item.stock != -1) {
-      SQL("UPDATE items SET stock=? WHERE id=?", [
-        item.stock - amount,
-        item.id,
-      ]);
+      await prisma.item.update({
+        where: { id: item.id },
+        data: { stock: item.stock - amount },
+      });
     }
 
     setPoints(user!.user_id!, Number(user!.points) - Number(item.buy_cost || 0) * amount);
     addItem(user!.id, item.id, amount);
 
-    interaction.reply({
-      content: `You bought ${amount.toLocaleString()}x **${item.item_name}**`,
-    });
-
+    interaction.reply({ content: `You bought ${amount.toLocaleString()}x **${item.item_name}**` });
     return true;
   }
 
   async getSlash() {
-    const items = await SQL(
-      "SELECT * FROM items WHERE buyable=1 ORDER BY item_name"
-    );
+    const items = await prisma.item.findMany({
+      where: { buyable: 1 },
+      orderBy: { item_name: "asc" },
+    });
 
     return new SlashCommandBuilder()
       .setName(this.name)
@@ -86,9 +79,8 @@ export default class BotCommand extends Command {
           .setRequired(true);
 
         for (const item of items) {
-          option.addChoices({ name: item.item_name, value: item.item_name.toLowerCase() });
+          option.addChoices({ name: item.item_name!, value: item.item_name!.toLowerCase() });
         }
-
         return option;
       })
       .addStringOption((option) =>

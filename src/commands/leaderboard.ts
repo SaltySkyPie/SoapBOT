@@ -1,14 +1,13 @@
-import { Collection, CommandInteraction, EmbedBuilder } from "discord.js";
-import SoapClient from "../types/client";
+import { Collection, ChatInputCommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import SQL from "../functions/SQL.js";
+import { Command, SoapClient } from "../core/index.js";
+import prisma from "../lib/prisma.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+export default class Leaderboard extends Command {
+  readonly name = "leaderboard";
+  readonly description = "View the server leaderboard";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const guild = interaction.guild;
 
     if (!guild) {
@@ -16,47 +15,49 @@ export default class BotCommand extends Command {
       return false;
     }
 
-    const members = new Array();
-    const nicknames = new Collection();
+    const members = new Array<string>();
+    const nicknames = new Collection<string, string>();
 
-    for (const [snowflake, member] of guild?.members.cache!) {
+    for (const [snowflake, member] of guild.members.cache) {
       if (!snowflake || !member) continue;
       members.push(snowflake);
-      member.user.bot ? null : nicknames.set(member.id, member.displayName);
+      if (!member.user.bot) nicknames.set(member.id, member.displayName);
     }
 
-    const member_points = await SQL(
-      "SELECT u.user_id, u.points, @rownum := @rownum + 1 AS rank FROM users u, (SELECT @rownum := 0) r WHERE user_id IN (?) ORDER BY u.points DESC LIMIT 10",
-      [members]
-    );
+    const users = await prisma.user.findMany({
+      where: { user_id: { in: members } },
+      orderBy: { points: "desc" },
+      take: 10,
+      select: { user_id: true, points: true },
+    });
 
-    const LeaderboardEmbed = new EmbedBuilder()
-      .setColor("#ff00e4")
-      .setAuthor({
-        name: `Leaderboard for ${guild!.name!}`,
-        iconURL: guild!.iconURL({ })!,
-      });
+    const memberPoints = users.map((u, index) => ({
+      user_id: u.user_id,
+      points: Number(u.points),
+      rank: index + 1,
+    }));
 
-    for (const position of member_points) {
-      const nickname = nicknames.get(position.user_id);
+    const embed = this.createEmbed().setAuthor({
+      name: `Leaderboard for ${guild.name}`,
+      iconURL: guild.iconURL() || undefined,
+    });
 
+    for (const position of memberPoints) {
+      const nickname = nicknames.get(position.user_id!);
       if (!nickname) continue;
 
-      LeaderboardEmbed.addFields({
+      embed.addFields({
         name: "\u200B",
-        value: `**#${
-          position.rank
-        }** **${nickname}** - 🧼 ${position.points.toLocaleString()}`,
+        value: `**#${position.rank}** **${nickname}** - 🧼 ${position.points.toLocaleString()}`,
         inline: false,
       });
 
       if (position.user_id === interaction.user.id) {
-        LeaderboardEmbed.setDescription(`You are #${position.rank}`);
+        embed.setDescription(`You are #${position.rank}`);
       }
     }
 
-    interaction.reply({ embeds: [LeaderboardEmbed] });
-
+    interaction.reply({ embeds: [embed] });
     return true;
   }
 

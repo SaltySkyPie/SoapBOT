@@ -1,7 +1,7 @@
-import getMysqlDateTime from "./getMysqlDateTime.js";
 import prisma from "../lib/prisma.js";
+import { getMysqlDateTime } from "../utils/time.js";
 
-export default async function addAdctiveItem(
+export default async function addActiveItem(
   userId: number | bigint,
   itemId: number | bigint,
   activeSeconds: number

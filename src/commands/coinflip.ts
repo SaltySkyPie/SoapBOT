@@ -1,24 +1,19 @@
-import {
-  CommandInteraction,
-  ChatInputCommandInteraction,
-  GuildMember,
-  Message,
-  EmbedBuilder,
-} from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, GuildMember, Message } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
+import { Command, SoapClient } from "../core/index.js";
 import getPoints from "../functions/getPoints.js";
-import decodeNumber from "../functions/decodeNumber.js";
+import parseAmount from "../functions/parseAmount.js";
 import setPoints from "../functions/setPoints.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
+export default class Coinflip extends Command {
+  readonly name = "coinflip";
+  readonly description = "Flip a coin and bet your soap";
+  readonly cooldown = 10; // 10 seconds
+
   async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const success = Math.round(Math.random());
     const avatar = interaction.user.displayAvatarURL();
+    const member = interaction.member as GuildMember;
 
     const [side, bet] = [
       interaction.options.getString("side"),
@@ -31,11 +26,10 @@ export default class BotCommand extends Command {
     }
 
     const points = await getPoints(interaction.user.id);
-    let decoded =
-      bet == "max" || bet == "all" ? points : await decodeNumber(bet!);
+    let decoded = parseAmount(bet, points);
 
-    if (!decoded) {
-      interaction.reply({ content: `I can only slip on numbers...` });
+    if (decoded === null || decoded <= 0) {
+      interaction.reply({ content: `I can only slip on positive numbers...` });
       return false;
     }
 
@@ -46,17 +40,11 @@ export default class BotCommand extends Command {
 
     await setPoints(interaction.user.id, points - decoded);
 
-    const flipping = new EmbedBuilder()
+    const flipping = this.createEmbed()
       .setImage("https://cdn.saltyskypie.com/soapbot/gifs/flip.gif")
-      .setTitle(`${(interaction.member as GuildMember).displayName}`)
-      .setAuthor({
-        name: `${(interaction.member as GuildMember).displayName}'s coin flip`,
-        iconURL: avatar,
-      })
-      .setDescription(
-        `is betting 🧼**${decoded.toLocaleString()}** on ${side}.`
-      )
-      .setColor("#ff00e4");
+      .setTitle(`${member.displayName}`)
+      .setAuthor({ name: `${member.displayName}'s coin flip`, iconURL: avatar })
+      .setDescription(`is betting 🧼**${decoded.toLocaleString()}** on ${side}.`);
 
     const reply = (await interaction.reply({
       embeds: [flipping],
@@ -69,28 +57,10 @@ export default class BotCommand extends Command {
       ? "https://cdn.saltyskypie.com/soapbot/gifs/heads-fail.gif"
       : "https://cdn.saltyskypie.com/soapbot/gifs/tails-fail.gif";
 
-    const result = new EmbedBuilder()
-      .setColor("#ff00e4")
-      .setTitle(
-        `${
-          success
-            ? `**${
-                (interaction.member as GuildMember).displayName
-              }** won the coin flip!`
-            : `**${
-                (interaction.member as GuildMember).displayName
-              }** lost the coin flip!`
-        }`
-      )
-      .setAuthor({
-        name: `${(interaction.member as GuildMember).displayName}'s coin flip`,
-        iconURL: avatar,
-      })
-      .setDescription(
-        success
-          ? `and earned 🧼**${(decoded * 2).toLocaleString()}**!`
-          : `and lost 🧼**${decoded.toLocaleString()}**!`
-      )
+    const result = this.createEmbed()
+      .setTitle(success ? `**${member.displayName}** won the coin flip!` : `**${member.displayName}** lost the coin flip!`)
+      .setAuthor({ name: `${member.displayName}'s coin flip`, iconURL: avatar })
+      .setDescription(success ? `and earned 🧼**${(decoded * 2).toLocaleString()}**!` : `and lost 🧼**${decoded.toLocaleString()}**!`)
       .setImage(result_image);
 
     setTimeout(async () => {

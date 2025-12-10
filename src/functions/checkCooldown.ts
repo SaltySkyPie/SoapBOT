@@ -1,7 +1,6 @@
 import { Snowflake } from "discord.js";
-import getMysqlDateTime from "./getMysqlDateTime.js";
-import getTimeRemaining from "./getTimeRemaining.js";
 import prisma from "../lib/prisma.js";
+import { getMysqlDateTime, getTimeRemaining, formatCooldownRemaining } from "../utils/time.js";
 
 export default async function checkCooldown(
   userId: Snowflake,
@@ -25,16 +24,8 @@ export default async function checkCooldown(
   });
 
   if (cooldown && cooldown.expiration) {
-    const remaining = getTimeRemaining(
-      cooldown.expiration.toISOString(),
-      getMysqlDateTime()
-    );
-
-    const d = remaining.days ? `${remaining.days}d ` : "";
-    const h = remaining.hours ? `${remaining.hours}h ` : "";
-    const m = remaining.minutes ? `${remaining.minutes}m ` : "";
-    const s = remaining.seconds ? `${remaining.seconds}s ` : "0s";
-    return `${d + h + m + s}`;
+    const remaining = getTimeRemaining(cooldown.expiration, new Date());
+    return formatCooldownRemaining(remaining);
   } else {
     return false;
   }

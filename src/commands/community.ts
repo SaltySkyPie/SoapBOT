@@ -1,22 +1,18 @@
-import { CommandInteraction, EmbedBuilder } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
+import { Command, SoapClient } from "../core/index.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
-    const CommunityEmbed = new EmbedBuilder()
+export default class Community extends Command {
+  readonly name = "community";
+  readonly description = "Join the Soap BOT community server";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
+    const embed = this.createEmbed()
       .setTitle("Join Soap BOT community server!")
-      .setDescription(
-        "Giveaways, Beta testing and more!\nhttps://discord.gg/y3xMSTrUuD"
-      )
-      .setThumbnail(client.user?.avatarURL() as string)
-      .setColor("#ff00e4");
+      .setDescription("Giveaways, Beta testing and more!\nhttps://discord.gg/y3xMSTrUuD")
+      .setThumbnail(client.user?.avatarURL() as string);
 
-    interaction.reply({ embeds: [CommunityEmbed] });
+    interaction.reply({ embeds: [embed] });
     return true;
   }
 

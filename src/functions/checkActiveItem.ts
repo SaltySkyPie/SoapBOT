@@ -1,6 +1,5 @@
-import { Snowflake } from "discord.js";
-import getMysqlDateTime from "./getMysqlDateTime.js";
 import prisma from "../lib/prisma.js";
+import { getMysqlDateTime } from "../utils/time.js";
 
 export default async function checkActiveItem(userId: number | bigint, itemId: number | bigint) {
   const now = new Date(getMysqlDateTime());
@@ -11,5 +10,5 @@ export default async function checkActiveItem(userId: number | bigint, itemId: n
       expiration_date: { gt: now },
     },
   });
-  return activeItem ? true : false;
+  return !!activeItem;
 }

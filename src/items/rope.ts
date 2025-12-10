@@ -1,13 +1,21 @@
-import { CommandInteraction } from "discord.js";
-import SoapClient from "../types/client";
-import Item from "../types/Item.js";
+import { ChatInputCommandInteraction } from "discord.js";
+import { Item, SoapClient } from "../core/index.js";
 
-export default class BotItem extends Item {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
+export default class Rope extends Item {
+  readonly name = "Rope";
+  readonly description = "Protects your soap from being dropped";
 
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+  // Shop properties
+  readonly buyable = true;
+  readonly shop = true;
+  readonly buyCost = 500;
+
+  // Usage properties
+  readonly useable = true;
+  readonly activable = true;
+  readonly activeDuration = 3600; // 1 hour
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction, amount: number) {
     interaction.reply({
       content: `You used **Rope**! Next time someone tries to drop your soap they'll automatically fail.`,
     });

@@ -1,3 +1,0 @@
-:start
-node .
-goto start

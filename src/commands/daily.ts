@@ -1,29 +1,26 @@
-import { CommandInteraction, EmbedBuilder } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
+import { Command, SoapClient } from "../core/index.js";
 import getPoints from "../functions/getPoints.js";
 import setPoints from "../functions/setPoints.js";
-import getBaseValue from "../functions/getBaseValue.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
-    const points_to_add = parseInt(await getBaseValue("daily"));
-    await setPoints(
-      interaction.user.id,
-      (await getPoints(interaction.user.id)) + points_to_add
-    );
-    const DailyEmbed = new EmbedBuilder()
+const DAILY_REWARD = 10000;
+
+export default class Daily extends Command {
+  readonly name = "daily";
+  readonly description = "Claim your daily soap reward";
+  readonly cooldown = 86400; // 24 hours
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
+    await setPoints(interaction.user.id, (await getPoints(interaction.user.id)) + DAILY_REWARD);
+
+    const embed = this.createEmbed()
       .setTitle(`Take your daily soapy reward!`)
       .setDescription(
-        `You recieved 🧼**${points_to_add.toLocaleString()}**\nMake sure to check out https://soapbot.saltyskypie.com and vote for Soap BOT for some additional goodies!`
-      )
-      .setColor("#ff00e4");
+        `You recieved 🧼**${DAILY_REWARD.toLocaleString()}**\nMake sure to check out https://soapbot.saltyskypie.com and vote for Soap BOT for some additional goodies!`
+      );
 
-    interaction.reply({ embeds: [DailyEmbed] });
+    interaction.reply({ embeds: [embed] });
     return true;
   }
 

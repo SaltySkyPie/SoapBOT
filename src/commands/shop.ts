@@ -1,145 +1,66 @@
-import {
-  CommandInteraction,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  Message,
-  ButtonStyle,
-  ComponentType,
-} from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import SQL from "../functions/SQL.js";
+import { Command, SoapClient } from "../core/index.js";
+import prisma from "../lib/prisma.js";
+import { createPaginatedEmbed } from "../utils/pagination.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
-    let currentPage = 0;
-    const count = await SQL(
-      `SELECT count(id) as count FROM items WHERE shop=1 AND stock!=0`
-    );
-    const maxPage = Math.ceil(count[0].count / 5) - 1;
-    const getItems = async (page = 0) => {
-      const all = await SQL(
-        `SELECT * FROM items WHERE shop=1 AND stock!=0 LIMIT ${page * 5}, 5`
-      );
-      return all;
+interface ShopItem {
+  itemName: string;
+  description: string;
+  buyCost: number;
+}
+
+export default class Shop extends Command {
+  readonly name = "shop";
+  readonly description = "View items available for purchase";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
+    const pageSize = 5;
+    const totalCount = await prisma.item.count({
+      where: { shop: 1, stock: { not: 0 } },
+    });
+
+    const fetchItems = async (page: number): Promise<ShopItem[]> => {
+      const items = await prisma.item.findMany({
+        where: { shop: 1, stock: { not: 0 } },
+        skip: page * pageSize,
+        take: pageSize,
+      });
+      return items.map((item) => ({
+        itemName: item.item_name ?? "",
+        description: item.description ?? "",
+        buyCost: Number(item.buy_cost),
+      }));
     };
-    let items = await getItems(currentPage);
 
-    const ShopEmbed = new EmbedBuilder()
-      .setColor("#ff00e4")
-      .setAuthor({
-        name: "Shop",
-        iconURL: "https://cdn.saltyskypie.com/soapbot/images/soap.png",
-      })
-      .setDescription("Currently available items")
-      .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
+    const buildEmbed = (items: ShopItem[], currentPage: number, maxPage: number): EmbedBuilder => {
+      const embed = this.createEmbed()
+        .setAuthor({
+          name: "Shop",
+          iconURL: "https://cdn.saltyskypie.com/soapbot/images/soap.png",
+        })
+        .setDescription("Currently available items")
+        .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
 
-    items.forEach((i: any) => {
-      ShopEmbed.addFields(
-        { name: "\u200B", value: `**${i.item_name}**\n`, inline: true },
-        { name: "\u200B", value: `${i.description}\n`, inline: true },
-        {
-          name: "\u200B",
-          value: `**🧼${i.buy_cost.toLocaleString()}**\n`,
-          inline: true,
-        }
-      );
-    });
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId("shop_previous" + interaction.id)
-        .setLabel("◀")
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId("shop_next" + interaction.id)
-        .setLabel("▶")
-        .setStyle(ButtonStyle.Secondary)
-    );
-
-    const reply = (await interaction.reply({
-      embeds: [ShopEmbed],
-      components: [row],
-      fetchReply: true,
-    })) as Message;
-
-    const collector = interaction.channel!.createMessageComponentCollector({
-      componentType: ComponentType.Button,
-      idle: 20000,
-    });
-    collector.on("collect", async (i) => {
-      if (!i.customId.includes(interaction.id)) {
-        return;
+      for (const item of items) {
+        embed.addFields(
+          { name: "\u200B", value: `**${item.itemName}**\n`, inline: true },
+          { name: "\u200B", value: `${item.description}\n`, inline: true },
+          { name: "\u200B", value: `**${item.buyCost.toLocaleString()}**\n`, inline: true }
+        );
       }
-      if (i.user.id === interaction.user.id) {
-        //i.reply(`${i.user.id} clicked on the ${i.customId} button.`);
-        if (i.customId == "shop_next" + interaction.id) {
-          currentPage++;
-        }
-        if (i.customId == "shop_previous" + interaction.id) {
-          currentPage--;
-        }
-        if (currentPage < 0) {
-          currentPage = 0;
-        }
-        if (currentPage > maxPage) {
-          currentPage = maxPage;
-        }
-        items = await getItems(currentPage);
 
-        const ShopPageEmbed = new EmbedBuilder()
-          .setColor("#ff00e4")
-          .setAuthor({
-            name: "Shop",
-            iconURL: "https://cdn.saltyskypie.com/soapbot/images/soap.png",
-          })
-          .setDescription("Currently available items")
-          .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
+      return embed;
+    };
 
-        items.forEach((i: any) => {
-          ShopPageEmbed.addFields(
-            { name: "\u200B", value: `**${i.item_name}**\n`, inline: true },
-            { name: "\u200B", value: `${i.description}\n`, inline: true },
-            {
-              name: "\u200B",
-              value: `**🧼${i.buy_cost.toLocaleString()}**\n`,
-              inline: true,
-            }
-          );
-        });
-        await reply.edit({ embeds: [ShopPageEmbed] });
-        i.deferUpdate().catch();
-      } else {
-        i.reply({
-          content: `These buttons aren't for you!`,
-          ephemeral: true,
-        }).catch();
-      }
+    return createPaginatedEmbed({
+      interaction,
+      fetchItems,
+      totalCount,
+      pageSize,
+      buildEmbed,
+      customIdPrefix: "shop",
     });
-
-    collector.on("end", (collected) => {
-      //interaction.channel.send(`Collected ${collected.size} interactions.`);
-      const end = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId("shop_previous" + interaction.id)
-          .setLabel("◀")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(true),
-        new ButtonBuilder()
-          .setCustomId("shop_next" + interaction.id)
-          .setLabel("▶")
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(true)
-      );
-      reply.edit({ components: [end] });
-    });
-
-    return true;
   }
 
   async getSlash() {

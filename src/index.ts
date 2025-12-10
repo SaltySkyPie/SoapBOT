@@ -8,7 +8,6 @@
 */
 
 import "dotenv/config";
-import SQL from "./functions/SQL.js";
 import log from "./functions/log.js";
 import { ShardingManager } from "discord.js";
 

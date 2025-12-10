@@ -1,23 +1,21 @@
-import { CommandInteraction, EmbedBuilder } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
+import { Command, SoapClient } from "../core/index.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
-    const VoteEmbed = new EmbedBuilder()
+export default class Vote extends Command {
+  readonly name = "vote";
+  readonly description = "Vote for Soap BOT to earn rewards";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
+    const embed = this.createEmbed()
       .setTitle("Upvote Soap BOT!")
       .setDescription(
         "You can upvote Soap BOT to get some additional soap and items.\nhttps://discordbotlist.com/bots/soap-bot/upvote\nhttps://top.gg/bot/908817514480406628/vote"
       )
       .setThumbnail(client.user?.avatarURL() as string)
-      .setColor("#ff00e4")
       .setURL("https://soapbot.saltyskypie.com/vote");
 
-    interaction.reply({ embeds: [VoteEmbed] });
+    interaction.reply({ embeds: [embed] });
     return true;
   }
 

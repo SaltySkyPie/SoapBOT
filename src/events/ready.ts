@@ -1,27 +1,20 @@
 import log from "../functions/log.js";
-import SoapClient from "../types/client";
-import getBaseValue from "../functions/getBaseValue.js";
-import { PresenceUpdateStatus, ActivityType } from "discord.js";
+import { SoapClient } from "../core/index.js";
+import { ActivityType, PresenceStatusData } from "discord.js";
+import ms from "ms";
+
+const BOT_STATUS: PresenceStatusData = "online";
+const BOT_PRESENCE = "/help 🧼 soapbot.saltyskypie.com";
 
 export default async function execute(client: SoapClient) {
   updateStatus(client);
-  setInterval(async () => {
-    updateStatus(client);
-  }, 1000 * 60 * 30);
+  setInterval(() => updateStatus(client), ms("30m"));
 }
 
-async function updateStatus(client: SoapClient) {
-  const [status, presence] = await Promise.all([
-    getBaseValue("status"),
-    getBaseValue("presence"),
-  ]);
-  log(
-    "INFO",
-    global.shardId,
-    `Updating presence status to ${status} - "${presence}"`
-  );
+function updateStatus(client: SoapClient) {
+  log("INFO", global.shardId, `Updating presence status to ${BOT_STATUS} - "${BOT_PRESENCE}"`);
   client.user?.setPresence({
-    activities: [{ name: `${presence}`, type: ActivityType.Playing }],
-    status: status as any,
+    activities: [{ name: BOT_PRESENCE, type: ActivityType.Playing }],
+    status: BOT_STATUS,
   });
 }

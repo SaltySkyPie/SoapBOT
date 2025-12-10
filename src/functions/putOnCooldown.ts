@@ -1,6 +1,6 @@
 import { Snowflake } from "discord.js";
-import getMysqlDateTime from "./getMysqlDateTime.js";
 import prisma from "../lib/prisma.js";
+import { getFutureTimestamp } from "../utils/time.js";
 
 export default async function putOnCooldown(
   userId: Snowflake,
@@ -23,7 +23,7 @@ export default async function putOnCooldown(
     data: {
       user_id: user.id,
       command_id: BigInt(commandId),
-      expiration: new Date(getMysqlDateTime(Number(command.cooldown) * 1000)),
+      expiration: getFutureTimestamp(Number(command.cooldown) * 1000),
     },
   });
 }

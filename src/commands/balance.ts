@@ -1,34 +1,29 @@
-import { CommandInteraction,
-  ChatInputCommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
+import { Command, SoapClient } from "../core/index.js";
 import getPoints from "../functions/getPoints.js";
 import getBank from "../functions/getBank.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
+export default class Balance extends Command {
+  readonly name = "balance";
+  readonly description = "Check your or someone else's balance";
+
   async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
-    let user: GuildMember = interaction.options.getMember(
-      "user"
-    ) as GuildMember;
-    if (!user) {
-      user = interaction.member as GuildMember;
-    }
+    let user = interaction.options.getMember("user") as GuildMember;
+    if (!user) user = interaction.member as GuildMember;
 
-    const points = await Promise.all([getPoints(user.id), getBank(user.id)]);
+    const [points, bank] = await Promise.all([
+      getPoints(user.id),
+      getBank(user.id),
+    ]);
 
-    const BalanceEmbed = new EmbedBuilder()
+    const embed = this.createEmbed()
       .setTitle(`${user.displayName}'s balance`)
       .setDescription(
-        `Hand: 🧼**${points[0].toLocaleString()}**\nStash: 🧼**${points[1][0].toLocaleString()}** / 🧼**${points[1][1].toLocaleString()}**`
-      )
-      .setColor("#ff00e4");
+        `Hand: 🧼**${points.toLocaleString()}**\nStash: 🧼**${bank[0].toLocaleString()}** / 🧼**${bank[1].toLocaleString()}**`
+      );
 
-    interaction.reply({ embeds: [BalanceEmbed] });
-
+    interaction.reply({ embeds: [embed] });
     return true;
   }
 

@@ -1,47 +1,39 @@
-import { CommandInteraction,
-  ChatInputCommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import getSoapstatus from "../functions/getSoapStatus.js";
-import getBaseValue from "../functions/getBaseValue.js";
+import { Command, SoapClient } from "../core/index.js";
+import getSoapStatus from "../functions/getSoapStatus.js";
 import setPoints from "../functions/setPoints.js";
 import getUserData from "../functions/getUserData.js";
 import getPoints from "../functions/getPoints.js";
-import decodeNumber from "../functions/decodeNumber.js";
+import parseAmount from "../functions/parseAmount.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
+const GIVE_TAX = 0.1; // 10%
+
+export default class Give extends Command {
+  readonly name = "give";
+  readonly description = "Give soap to another user";
+  readonly cooldown = 60; // 1 minute
+
   async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const user = interaction.member as GuildMember;
     const mention = interaction.options.getMember("user") as GuildMember;
 
     const amountInput = interaction.options.getString("amount");
     const points = await getPoints(interaction.user.id);
-    const amount =
-      amountInput == "max" || amountInput == "all"
-        ? points
-        : await decodeNumber(amountInput!);
+    const amount = parseAmount(amountInput, points);
 
-    if (amount < 100) {
-      interaction.reply({
-        content: `You need to give atleast 🧼**100**`,
-      });
+    if (amount === null || amount < 100) {
+      interaction.reply({ content: `You need to give atleast 🧼**100**` });
       return false;
     }
+
     if (amount > points) {
-      interaction.reply({
-        content: `You don't have enough 🧼 to give :(`,
-      });
+      interaction.reply({ content: `You don't have enough 🧼 to give :(` });
       return false;
     }
 
     if (!mention) {
-      interaction.reply({
-        content: "BRUH... Are you dumb? Try again with an actual person.",
-      });
+      interaction.reply({ content: "BRUH... Are you dumb? Try again with an actual person." });
       return false;
     }
 
@@ -50,10 +42,8 @@ export default class BotCommand extends Command {
       return false;
     }
 
-    if ((await getSoapstatus(user.id)) != 0) {
-      interaction.reply({
-        content: `You need to pick up your soap first :smirk:`,
-      });
+    if ((await getSoapStatus(user.id)) != 0) {
+      interaction.reply({ content: `You need to pick up your soap first :smirk:` });
       return false;
     }
 
@@ -62,19 +52,14 @@ export default class BotCommand extends Command {
       getUserData(user.id),
     ]);
 
-    const tax = parseFloat((await getBaseValue("give_tax"))!);
-    console.log("tax", tax);
-
     await Promise.all([
       setPoints(origin!.user_id!, Number(origin!.points) - amount),
-      setPoints(target!.user_id!, Number(target!.points) + (amount - amount * tax)),
+      setPoints(target!.user_id!, Number(target!.points) + (amount - amount * GIVE_TAX)),
     ]);
 
     interaction.reply({
-      content: `You gave 🧼**${amount.toLocaleString()}** to **${
-        mention.displayName
-      }**. After ${tax * 100}% tax they now have 🧼**${
-        Number(target!.points) + (amount - amount * tax)
+      content: `You gave 🧼**${amount.toLocaleString()}** to **${mention.displayName}**. After ${GIVE_TAX * 100}% tax they now have 🧼**${
+        Number(target!.points) + (amount - amount * GIVE_TAX)
       }** and you have 🧼**${Number(origin!.points) - amount}**.`,
     });
 
@@ -89,10 +74,7 @@ export default class BotCommand extends Command {
         option.setName("user").setDescription("Select a user").setRequired(true)
       )
       .addStringOption((option) =>
-        option
-          .setName("amount")
-          .setDescription("Amount to give")
-          .setRequired(true)
+        option.setName("amount").setDescription("Amount to give").setRequired(true)
       );
   }
 }

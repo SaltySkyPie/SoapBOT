@@ -1,4 +1,4 @@
-import SoapClient from "../types/client";
+import { SoapClient } from "../core/index.js";
 
 export default async function getServerCount(client: SoapClient) {
   const req = await client.shard!.fetchClientValues("guilds.cache.size");
