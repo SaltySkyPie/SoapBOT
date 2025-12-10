@@ -22,7 +22,7 @@ export default async function execute(client: SoapClient, interaction: Interacti
     const u = interaction.isChatInputCommand() ? i.options.getUser("user") : null;
     await Promise.all([
       u ? checkUserCreation(u.id) : null,
-      prisma.activeItem.deleteMany({
+      prisma.active_items.deleteMany({
         where: { expiration_date: { lte: getCurrentTimestamp() } },
       }),
     ]);

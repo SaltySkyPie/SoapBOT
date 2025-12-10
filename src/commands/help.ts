@@ -15,10 +15,10 @@ export default class Help extends Command {
 
   async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const pageSize = 5;
-    const totalCount = await prisma.command.count();
+    const totalCount = await prisma.commands.count();
 
     const fetchItems = async (page: number): Promise<HelpItem[]> => {
-      const commands = await prisma.command.findMany({
+      const commands = await prisma.commands.findMany({
         orderBy: { command: "asc" },
         skip: page * pageSize,
         take: pageSize,

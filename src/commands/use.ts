@@ -127,7 +127,7 @@ export default class Use extends Command {
   }
 
   async getSlash() {
-    const items = await prisma.item.findMany({
+    const items = await prisma.items.findMany({
       where: { useable: 1 },
       orderBy: { item_name: "asc" },
     });

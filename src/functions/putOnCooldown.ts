@@ -7,11 +7,11 @@ export default async function putOnCooldown(
   commandId: number | bigint
 ) {
   const [command, user] = await Promise.all([
-    prisma.command.findUnique({
+    prisma.commands.findUnique({
       where: { id: BigInt(commandId) },
       select: { cooldown: true },
     }),
-    prisma.user.findUnique({
+    prisma.users.findUnique({
       where: { user_id: userId },
       select: { id: true },
     }),
@@ -19,7 +19,7 @@ export default async function putOnCooldown(
 
   if (!command || !user) return;
 
-  await prisma.commandCooldown.create({
+  await prisma.command_cooldowns.create({
     data: {
       user_id: user.id,
       command_id: BigInt(commandId),

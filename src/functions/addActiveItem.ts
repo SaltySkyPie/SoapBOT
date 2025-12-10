@@ -10,7 +10,7 @@ export default async function addActiveItem(
   const itemIdBigInt = BigInt(itemId);
   const now = new Date(getMysqlDateTime());
 
-  const checkActiveItem = await prisma.activeItem.findFirst({
+  const checkActiveItem = await prisma.active_items.findFirst({
     where: {
       user_id: userIdBigInt,
       item_id: itemIdBigInt,
@@ -21,14 +21,14 @@ export default async function addActiveItem(
   if (checkActiveItem) {
     return false;
   } else {
-    await prisma.activeItem.deleteMany({
+    await prisma.active_items.deleteMany({
       where: {
         user_id: userIdBigInt,
         item_id: itemIdBigInt,
       },
     });
     const date = new Date(getMysqlDateTime(activeSeconds * 1000));
-    await prisma.activeItem.create({
+    await prisma.active_items.create({
       data: {
         user_id: userIdBigInt,
         item_id: itemIdBigInt,

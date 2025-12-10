@@ -69,7 +69,7 @@ export default class Drop extends Command {
       return true;
     }
 
-    const gifs = await prisma.gif.findMany({ where: { purpose: 0 } });
+    const gifs = await prisma.gifs.findMany({ where: { purpose: 0 } });
     const image = gifs[Math.floor(Math.random() * gifs.length)]?.link;
 
     const dropEmbed = this.createEmbed()
@@ -122,7 +122,7 @@ export default class Drop extends Command {
       reply.edit({ components: [pickupRow] });
       i.deferUpdate();
 
-      const pickupGifs = await prisma.gif.findMany({ where: { purpose: 1 } });
+      const pickupGifs = await prisma.gifs.findMany({ where: { purpose: 1 } });
       const pickupImage = pickupGifs[Math.floor(Math.random() * pickupGifs.length)]?.link;
 
       const pickUpEmbed = this.createEmbed()

@@ -28,7 +28,7 @@ export default class SoapParty extends Item {
   async execute(client: SoapClient, interaction: ChatInputCommandInteraction, amount: number) {
     const user = interaction.member as GuildMember;
 
-    const partyGifs = await prisma.gif.findMany({ where: { purpose: 2 } });
+    const partyGifs = await prisma.gifs.findMany({ where: { purpose: 2 } });
     const image = partyGifs[Math.floor(Math.random() * partyGifs.length)]?.link;
 
     const partyEmbed = new EmbedBuilder()

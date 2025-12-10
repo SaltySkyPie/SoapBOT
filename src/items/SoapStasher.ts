@@ -20,7 +20,7 @@ export default class SoapStasher extends Item {
     const user = interaction.user;
     const bank = await getBank(user.id);
 
-    await prisma.user.update({
+    await prisma.users.update({
       where: { user_id: user.id },
       data: { max_stash: bank[1] + 2500 * amount },
     });

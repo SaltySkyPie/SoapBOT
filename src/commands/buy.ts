@@ -50,7 +50,7 @@ export default class Buy extends Command {
     }
 
     if (item.stock != -1) {
-      await prisma.item.update({
+      await prisma.items.update({
         where: { id: item.id },
         data: { stock: item.stock - amount },
       });
@@ -64,7 +64,7 @@ export default class Buy extends Command {
   }
 
   async getSlash() {
-    const items = await prisma.item.findMany({
+    const items = await prisma.items.findMany({
       where: { buyable: 1 },
       orderBy: { item_name: "asc" },
     });

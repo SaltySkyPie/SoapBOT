@@ -6,7 +6,7 @@ export default async function checkCooldown(
   userId: Snowflake,
   commandId: number | bigint
 ) {
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { user_id: userId },
     select: { id: true },
   });
@@ -14,7 +14,7 @@ export default async function checkCooldown(
   if (!user) return false;
 
   const now = new Date(getMysqlDateTime());
-  const cooldown = await prisma.commandCooldown.findFirst({
+  const cooldown = await prisma.command_cooldowns.findFirst({
     where: {
       command_id: BigInt(commandId),
       user_id: user.id,

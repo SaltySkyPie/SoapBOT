@@ -24,7 +24,7 @@ export default class Leaderboard extends Command {
       if (!member.user.bot) nicknames.set(member.id, member.displayName);
     }
 
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
       where: { user_id: { in: members } },
       orderBy: { points: "desc" },
       take: 10,

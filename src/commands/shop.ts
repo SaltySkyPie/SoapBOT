@@ -16,12 +16,12 @@ export default class Shop extends Command {
 
   async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const pageSize = 5;
-    const totalCount = await prisma.item.count({
+    const totalCount = await prisma.items.count({
       where: { shop: 1, stock: { not: 0 } },
     });
 
     const fetchItems = async (page: number): Promise<ShopItem[]> => {
-      const items = await prisma.item.findMany({
+      const items = await prisma.items.findMany({
         where: { shop: 1, stock: { not: 0 } },
         skip: page * pageSize,
         take: pageSize,

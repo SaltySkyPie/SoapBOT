@@ -40,13 +40,13 @@ export default class Inventory extends Command {
     const fetchItems = async (page: number): Promise<InventoryItem[]> => {
       const items = await prisma.inventory.findMany({
         where: { user_id: dbUser.id, amount: { gt: 0 } },
-        include: { item: true },
+        include: { items: true },
         skip: page * pageSize,
         take: pageSize,
       });
       return items.map((inv) => ({
-        itemName: inv.item.item_name ?? "",
-        description: inv.item.description ?? "",
+        itemName: inv.items.item_name ?? "",
+        description: inv.items.description ?? "",
         amount: inv.amount ?? 0,
       }));
     };

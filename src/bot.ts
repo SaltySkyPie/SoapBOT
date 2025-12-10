@@ -27,7 +27,7 @@ async function registerCommands(commands: Command[]) {
 
   for (const command of commands) {
     // Upsert command to database (syncs cooldown and description from code)
-    const dbCommand = await prisma.command.upsert({
+    const dbCommand = await prisma.commands.upsert({
       where: { command: command.name },
       create: {
         command: command.name,
@@ -54,7 +54,7 @@ async function registerItems(items: Item[]) {
 
   for (const item of items) {
     // Upsert item to database (syncs all properties from code, except stock)
-    const dbItem = await prisma.item.upsert({
+    const dbItem = await prisma.items.upsert({
       where: { item_name: item.name },
       create: {
         item_name: item.name,

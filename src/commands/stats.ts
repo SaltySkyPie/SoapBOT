@@ -20,12 +20,12 @@ export default class Stats extends Command {
       commandsCount,
     ] = await Promise.all([
       getServerCount(client).catch(() => "loading..."),
-      prisma.user.aggregate({ _sum: { points: true } }),
-      prisma.user.aggregate({ _sum: { stash: true } }),
-      prisma.user.aggregate({ _sum: { max_stash: true } }),
-      prisma.user.count(),
-      prisma.item.count(),
-      prisma.command.count(),
+      prisma.users.aggregate({ _sum: { points: true } }),
+      prisma.users.aggregate({ _sum: { stash: true } }),
+      prisma.users.aggregate({ _sum: { max_stash: true } }),
+      prisma.users.count(),
+      prisma.items.count(),
+      prisma.commands.count(),
     ]);
 
     const economyWallet = Number(walletAgg._sum.points || 0);
