@@ -1,5 +1,7 @@
-import SQL from "./SQL.js";
+import prisma from "../lib/prisma.js";
 
 export default async function getItemByName(name: string) {
-  return (await SQL("SELECT * FROM items WHERE item_name=?", [name]))[0];
+  return await prisma.items.findUnique({
+    where: { item_name: name },
+  });
 }

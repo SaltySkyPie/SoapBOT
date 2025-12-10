@@ -1,27 +1,40 @@
-import getMysqlDateTime from "./getMysqlDateTime.js";
-import SQL from "./SQL.js";
+import prisma from "../lib/prisma.js";
+import { getMysqlDateTime } from "../utils/time.js";
 
-export default async function addAdctiveItem(
-  userId: number,
-  itemId: number,
+export default async function addActiveItem(
+  userId: number | bigint,
+  itemId: number | bigint,
   activeSeconds: number
 ) {
-  const checkActiveItem = await SQL(
-    "SELECT expiration_date FROM active_items WHERE user_id=? AND item_id=? AND expiration_date>?",
-    [userId, itemId, getMysqlDateTime()]
-  );
-  if (checkActiveItem.length) {
+  const userIdBigInt = BigInt(userId);
+  const itemIdBigInt = BigInt(itemId);
+  const now = new Date(getMysqlDateTime());
+
+  const checkActiveItem = await prisma.active_items.findFirst({
+    where: {
+      user_id: userIdBigInt,
+      item_id: itemIdBigInt,
+      expiration_date: { gt: now },
+    },
+  });
+
+  if (checkActiveItem) {
     return false;
   } else {
-    await SQL("DELETE FROM active_items WHERE user_id=? AND item_id=?", [
-      userId,
-      itemId,
-    ]);
-    const date = getMysqlDateTime(activeSeconds * 1000);
-    await SQL(
-      "INSERT INTO active_items (user_id, item_id, expiration_date) VALUES (?,?,?)",
-      [userId, itemId, date]
-    );
+    await prisma.active_items.deleteMany({
+      where: {
+        user_id: userIdBigInt,
+        item_id: itemIdBigInt,
+      },
+    });
+    const date = new Date(getMysqlDateTime(activeSeconds * 1000));
+    await prisma.active_items.create({
+      data: {
+        user_id: userIdBigInt,
+        item_id: itemIdBigInt,
+        expiration_date: date,
+      },
+    });
     return true;
   }
 }

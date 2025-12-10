@@ -1,20 +1,19 @@
-import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import SQL from "../functions/SQL.js";
+import { Command, SoapClient } from "../core/index.js";
+import prisma from "../lib/prisma.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+export default class Kill extends Command {
+  readonly name = "kill";
+  readonly description = "Kill another user (for fun)";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const target = interaction.options.getMember("user") as GuildMember;
     const user = interaction.member as GuildMember;
+
     if (!target) {
       interaction.reply({
-        content:
-          "You actually need a target to kill... thats a common sense tbh",
+        content: "You actually need a target to kill... thats a common sense tbh",
       });
       return false;
     }
@@ -24,31 +23,23 @@ export default class BotCommand extends Command {
       return false;
     }
 
-    const kill = (
-      await SQL("SELECT message FROM kill_msg ORDER BY RAND() LIMIT 1", [])
-    )[0].message
+    const killMessages = await prisma.kill_msg.findMany();
+    const randomKill = killMessages[Math.floor(Math.random() * killMessages.length)];
+    const kill = randomKill.message
       .toString()
       .replaceAll("{1}", `**${user.displayName}**`)
       .replaceAll("{0}", `**${target.displayName}**`);
 
-    const KillEmbed = new MessageEmbed()
-      .setTitle(":knife: Kill summary :knife:")
-      .setDescription(kill)
-      .setColor("#ff00e4");
+    const embed = this.createEmbed().setTitle(":knife: Kill summary :knife:").setDescription(kill);
 
-    interaction.reply({ embeds: [KillEmbed] });
+    interaction.reply({ embeds: [embed] });
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
-      .addUserOption((option) =>
-        option.setName("user").setDescription("Victim").setRequired(true)
-      );
+      .addUserOption((option) => option.setName("user").setDescription("Victim").setRequired(true));
   }
 }

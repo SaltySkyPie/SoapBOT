@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Get staged .ts files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.ts$' | grep '^src/' || true)
+
+if [ -n "$STAGED_FILES" ]; then
+  echo "Running ESLint and Prettier on staged files..."
+
+  # Run eslint --fix on staged files
+  echo "$STAGED_FILES" | xargs npx eslint --fix
+
+  # Run prettier --write on staged files
+  echo "$STAGED_FILES" | xargs npx prettier --write
+
+  # Re-stage the modified files
+  echo "$STAGED_FILES" | xargs git add
+fi

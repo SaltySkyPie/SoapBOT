@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model active_items {
+  id              BigInt   @id @default(autoincrement())
+  user_id         BigInt
+  item_id         BigInt
+  expiration_date DateTime @db.DateTime(0)
+  items           items    @relation(fields: [item_id], references: [id], onDelete: Cascade, map: "active_items_items_FK")
+  users           users    @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "active_items_users_FK")
+
+  @@index([item_id], map: "active_items_items_FK")
+  @@index([user_id], map: "active_items_users_FK")
+}
+
+model bans {
+  id                         BigInt   @id @default(autoincrement())
+  reason                     String   @default("No reason") @db.VarChar(100)
+  user_id                    BigInt
+  admin_id                   BigInt
+  issued_on                  DateTime @default(now()) @db.DateTime(0)
+  users_bans_user_idTousers  users    @relation("bans_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "bans_users_FK")
+  users_bans_admin_idTousers users    @relation("bans_admin_idTousers", fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "bans_users_admin_FK")
+
+  @@index([user_id], map: "bans_users_FK")
+  @@index([admin_id], map: "bans_users_admin_FK")
+}
+
+model command_cooldowns {
+  id         BigInt    @id @default(autoincrement())
+  user_id    BigInt
+  command_id BigInt
+  expiration DateTime? @db.DateTime(0)
+  commands   commands  @relation(fields: [command_id], references: [id], onDelete: Cascade, map: "cmdcd_commandsFK")
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "cmdcd_usersFK")
+
+  @@index([command_id], map: "cmdcd_commandsFK")
+  @@index([user_id], map: "cmdcd_usersFK")
+}
+
+model commands {
+  id                BigInt              @id @default(autoincrement())
+  command           String              @unique @db.VarChar(255)
+  description       String              @db.LongText
+  cooldown          BigInt              @default(0)
+  command_cooldowns command_cooldowns[]
+}
+
+model gifs {
+  id      Int     @id @default(autoincrement())
+  link    String? @db.VarChar(1000)
+  purpose Int     @default(0) @db.SmallInt
+}
+
+model inventory {
+  id      BigInt @id @default(autoincrement())
+  amount  Int?
+  user_id BigInt
+  item_id BigInt
+  items   items  @relation(fields: [item_id], references: [id], onDelete: Cascade, map: "item_ownership_items_FK")
+  users   users  @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "item_ownership_users_FK")
+
+  @@index([item_id], map: "item_ownership_items_FK")
+  @@index([user_id], map: "item_ownership_users_FK")
+}
+
+model items {
+  id              BigInt         @id @default(autoincrement())
+  item_name       String?        @unique @db.VarChar(50)
+  description     String?        @db.VarChar(500)
+  buy_cost        Int?
+  sell_cost       Int?
+  buyable         Int?           @db.TinyInt
+  sellable        Int?           @db.TinyInt
+  useable         Int            @default(0) @db.TinyInt
+  multiple_usable Int            @default(0) @db.TinyInt
+  shop            Int            @default(0) @db.TinyInt
+  stock           Int            @default(0)
+  activable       Int            @default(0) @db.TinyInt
+  active_duration BigInt         @default(0)
+  targetable      Int            @default(0) @db.TinyInt
+  item_image      String?        @db.VarChar(500)
+  active_items    active_items[]
+  inventory       inventory[]
+}
+
+model kill_msg {
+  id      BigInt @id @default(autoincrement())
+  message String @db.VarChar(500)
+}
+
+model love {
+  id                         BigInt   @id @default(autoincrement())
+  rating                     Int
+  user1_id                   BigInt
+  user2_id                   BigInt
+  expires                    DateTime @db.DateTime(0)
+  users_love_user1_idTousers users    @relation("love_user1_idTousers", fields: [user1_id], references: [id], onDelete: Cascade, map: "love_users_user1")
+  users_love_user2_idTousers users    @relation("love_user2_idTousers", fields: [user2_id], references: [id], onDelete: Cascade, map: "love_users_user2")
+
+  @@index([user1_id], map: "love_users_user1")
+  @@index([user2_id], map: "love_users_user2")
+}
+
+model users {
+  id                        BigInt               @id @default(autoincrement())
+  user_id                   String?              @unique @db.VarChar(50)
+  points                    BigInt?              @default(0)
+  stash                     BigInt               @default(0)
+  max_stash                 BigInt               @default(25000)
+  permissions               Int                  @default(0)
+  soap_status               Int?                 @default(0) @db.SmallInt
+  passive                   Int                  @default(0) @db.TinyInt
+  created_at                DateTime             @default(now()) @db.DateTime(0)
+  avatar_url                String?              @db.LongText
+  tag                       String?              @db.LongText
+  email                     String?              @db.LongText
+  active_items              active_items[]
+  bans_bans_user_idTousers  bans[]               @relation("bans_user_idTousers")
+  bans_bans_admin_idTousers bans[]               @relation("bans_admin_idTousers")
+  command_cooldowns         command_cooldowns[]
+  inventory                 inventory[]
+  love_love_user1_idTousers love[]               @relation("love_user1_idTousers")
+  love_love_user2_idTousers love[]               @relation("love_user2_idTousers")
+  web_rewards               web_rewards[]
+  web_rewards_claims        web_rewards_claims[]
+}
+
+model web_rewards {
+  id                 BigInt               @id @default(autoincrement())
+  reward_name        String               @db.VarChar(100)
+  description        String               @db.VarChar(500)
+  contents           String               @db.LongText
+  target             BigInt               @default(0)
+  cooldown           BigInt               @default(-1)
+  reward_claims      Int                  @default(1)
+  users              users                @relation(fields: [target], references: [id], onDelete: Cascade, map: "web_rewards_users_FK")
+  web_rewards_claims web_rewards_claims[]
+
+  @@index([target], map: "web_rewards_users_FK")
+}
+
+model web_rewards_claims {
+  id          BigInt      @id @default(autoincrement())
+  user_id     BigInt
+  reward_id   BigInt
+  expiration  DateTime    @default(dbgenerated("('9999-12-31 23:59:59')")) @db.DateTime(0)
+  users       users       @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "web_rewards_claims_users_FK")
+  web_rewards web_rewards @relation(fields: [reward_id], references: [id], onDelete: Cascade, map: "web_rewards_claims_web_rewards_FK")
+
+  @@index([user_id], map: "web_rewards_claims_users_FK")
+  @@index([reward_id], map: "web_rewards_claims_web_rewards_FK")
+}
+

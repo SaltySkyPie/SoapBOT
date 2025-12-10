@@ -1,27 +1,19 @@
-import { CommandInteraction } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
+import { Command, SoapClient } from "../core/index.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+export default class Ping extends Command {
+  readonly name = "ping";
+  readonly description = "Check the bot's latency";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     interaction.reply({
-      content: `Pong 🏓 Latency is ${Math.abs(
-        Date.now() - interaction.createdTimestamp
-      )}ms.`,
+      content: `Pong 🏓 Latency is ${Math.abs(Date.now() - interaction.createdTimestamp)}ms.`,
     });
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
-    return new SlashCommandBuilder()
-      .setName(this.name)
-      .setDescription(this.description);
+  async getSlash() {
+    return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
   }
 }

@@ -1,70 +1,58 @@
-import { CommandInteraction, GuildMember } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import decodeNumber from "../functions/decodeNumber.js";
+import { Command, SoapClient } from "../core/index.js";
+import parseAmount from "../functions/parseAmount.js";
 import getPoints from "../functions/getPoints.js";
 import getBank from "../functions/getBank.js";
 import setPoints from "../functions/setPoints.js";
 import setBank from "../functions/setBank.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+export default class Withdraw extends Command {
+  readonly name = "withdraw";
+  readonly description = "Withdraw soap from your stash";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const user = interaction.member as GuildMember;
-    const [[current_stash_balance, max_stash_balance], current_points] =
-      await Promise.all([getBank(user.id), getPoints(user.id)]);
+    const [[currentStashBalance], currentPoints] = await Promise.all([
+      getBank(user.id),
+      getPoints(user.id),
+    ]);
 
-    const entered_amount = interaction.options.getString("amount");
+    const enteredAmount = interaction.options.getString("amount");
+    const decoded = parseAmount(enteredAmount, currentStashBalance);
 
-    let decoded =
-      entered_amount == "max" || entered_amount == "all"
-        ? current_stash_balance
-        : await decodeNumber(entered_amount!);
-
-    if (!decoded) {
-      interaction.reply({ content: `I can only slip on numbers...` });
+    if (decoded === null || decoded <= 0) {
+      interaction.reply({ content: `I can only slip on positive numbers...` });
       return false;
     }
 
-    if (decoded > current_stash_balance) {
+    if (decoded > currentStashBalance) {
       interaction.reply({ content: `You don't even have that much soap...` });
       return false;
     }
 
-    if (decoded == 0) {
+    if (currentStashBalance === 0) {
       interaction.reply({
         content: `You have literally zero in your stash. Imagine being so poor lmao`,
       });
       return false;
     }
 
-    if(decoded < 0) {
-      interaction.reply({ content: `I can only slip on positive numbers...` });
-      return false;
-    }
-
     await Promise.all([
-      setPoints(user.id, current_points + decoded),
-      setBank(user.id, current_stash_balance - decoded),
+      setPoints(user.id, currentPoints + decoded),
+      setBank(user.id, currentStashBalance - decoded),
     ]);
 
     interaction.reply({
       content: `You withdrew 🧼**${decoded.toLocaleString()}** from your stash. Your current stash balance is 🧼**${(
-        current_stash_balance - decoded
-      ).toLocaleString()}** and hand balance 🧼**${(
-        current_points + decoded
-      ).toLocaleString()}**.`,
+        currentStashBalance - decoded
+      ).toLocaleString()}** and hand balance 🧼**${(currentPoints + decoded).toLocaleString()}**.`,
     });
+
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)

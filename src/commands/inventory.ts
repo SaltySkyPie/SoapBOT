@@ -1,166 +1,90 @@
-import {
-  CommandInteraction,
-  MessageEmbed,
-  MessageActionRow,
-  MessageButton,
-  Message,
-  GuildMember,
-} from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, GuildMember, EmbedBuilder } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import SQL from "../functions/SQL.js";
+import { Command, SoapClient } from "../core/index.js";
+import prisma from "../lib/prisma.js";
 import getUserData from "../functions/getUserData.js";
+import { createPaginatedEmbed } from "../utils/pagination.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+interface InventoryItem {
+  itemName: string;
+  description: string;
+  amount: number;
+}
+
+export default class Inventory extends Command {
+  readonly name = "inventory";
+  readonly description = "View your or someone else's inventory";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     let user = interaction.options.getMember("user") as GuildMember;
-    if (!user) {
-      user = interaction.member as GuildMember;
+    if (!user) user = interaction.member as GuildMember;
+
+    const avatar = user.user.displayAvatarURL();
+    const dbUser = await getUserData(user.id);
+
+    if (!dbUser) {
+      interaction.reply("This person doesn't exist in our database.");
+      return false;
     }
 
-    const avatar = user.user.displayAvatarURL({ dynamic: true });
-    const db_user = await getUserData(user.id);
+    const pageSize = 5;
+    const totalCount = await prisma.inventory.count({
+      where: { user_id: dbUser.id, amount: { gt: 0 } },
+    });
 
-    let currentPage = 0;
-    const count: any = await SQL(
-      `SELECT count(id) as count FROM inventory WHERE user_id=? AND amount>0`,
-      [db_user.id]
-    );
-    const maxPage = Math.ceil(count[0].count / 5) - 1;
-    const getItems = async (page = 0) => {
-      const all = await SQL(
-        `SELECT *, inventory.amount FROM items INNER JOIN inventory ON items.id=inventory.item_id WHERE inventory.user_id=? AND inventory.amount>0 LIMIT ${
-          page * 5
-        }, 5`,
-        [db_user.id]
-      );
-      return all;
+    if (totalCount === 0) {
+      interaction.reply("This person is litterally homeless. No items whatsoever lmao");
+      return false;
+    }
+
+    const fetchItems = async (page: number): Promise<InventoryItem[]> => {
+      const items = await prisma.inventory.findMany({
+        where: { user_id: dbUser.id, amount: { gt: 0 } },
+        include: { items: true },
+        skip: page * pageSize,
+        take: pageSize,
+      });
+      return items.map((inv) => ({
+        itemName: inv.items.item_name ?? "",
+        description: inv.items.description ?? "",
+        amount: inv.amount ?? 0,
+      }));
     };
 
-    const InventoryEmbed = new MessageEmbed()
-      .setColor("#ff00e4")
-      .setAuthor({ name: `${user.displayName}'s inventory`, iconURL: avatar })
-      .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
+    const buildEmbed = (
+      items: InventoryItem[],
+      currentPage: number,
+      maxPage: number
+    ): EmbedBuilder => {
+      const embed = this.createEmbed()
+        .setAuthor({ name: `${user.displayName}'s inventory`, iconURL: avatar })
+        .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
 
-    let items = await getItems(currentPage);
-    if (!items.length) {
-      return interaction.reply(
-        `This person is litterally homeless. No items whatsoever lmao`
-      );
-    }
-
-    items.forEach((i: any) => {
-      InventoryEmbed.addFields(
-        { name: "\u200B", value: `**${i.item_name}**\n`, inline: true },
-        { name: "\u200B", value: `${i.description}\n`, inline: true },
-        {
-          name: "\u200B",
-          value: `**${i.amount.toLocaleString()}**\n`,
-          inline: true,
-        }
-      );
-    });
-
-    const row = new MessageActionRow().addComponents(
-      new MessageButton()
-        .setCustomId("inv_previous" + interaction.id)
-        .setLabel("◀")
-        .setStyle("SECONDARY"),
-      new MessageButton()
-        .setCustomId("inv_next" + interaction.id)
-        .setLabel("▶")
-        .setStyle("SECONDARY")
-    );
-
-    const reply = (await interaction.reply({
-      embeds: [InventoryEmbed],
-      components: [row],
-      fetchReply: true,
-    })) as Message;
-
-    const collector = interaction.channel!.createMessageComponentCollector({
-      componentType: "BUTTON",
-      idle: 20000,
-    });
-    collector.on("collect", async (i) => {
-      if (!i.customId.includes(interaction.id)) {
-        return;
+      for (const item of items) {
+        embed.addFields(
+          { name: "\u200B", value: `**${item.itemName}**\n`, inline: true },
+          { name: "\u200B", value: `${item.description}\n`, inline: true },
+          { name: "\u200B", value: `**${item.amount.toLocaleString()}**\n`, inline: true }
+        );
       }
-      if (i.user.id === interaction.user.id) {
-        //i.reply(`${i.user.id} clicked on the ${i.customId} button.`);
-        if (i.customId == "inv_next" + interaction.id) {
-          currentPage++;
-        }
-        if (i.customId == "inv_previous" + interaction.id) {
-          currentPage--;
-        }
-        if (currentPage < 0) {
-          currentPage = 0;
-        }
-        if (currentPage > maxPage) {
-          currentPage = maxPage;
-        }
-        items = await getItems(currentPage);
 
-        const InventoryPageEmbed = new MessageEmbed()
-          .setColor("#ff00e4")
-          .setAuthor({
-            name: `${user.displayName}'s inventory`,
-            iconURL: avatar,
-          })
-          .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
+      return embed;
+    };
 
-        items.forEach((i: any) => {
-          InventoryPageEmbed.addFields(
-            { name: "\u200B", value: `**${i.item_name}**\n`, inline: true },
-            { name: "\u200B", value: `${i.description}\n`, inline: true },
-            {
-              name: "\u200B",
-              value: `**${i.amount.toLocaleString()}**\n`,
-              inline: true,
-            }
-          );
-        });
-        await reply.edit({ embeds: [InventoryPageEmbed] });
-        i.deferUpdate().catch();
-      } else {
-        i.reply({ content: `These buttons aren't for you!`, ephemeral: true });
-      }
+    return createPaginatedEmbed({
+      interaction,
+      fetchItems,
+      totalCount,
+      pageSize,
+      buildEmbed,
+      customIdPrefix: "inv",
     });
-
-    collector.on("end", (collected) => {
-      //interaction.channel.send(`Collected ${collected.size} interactions.`);
-      const end = new MessageActionRow().addComponents(
-        new MessageButton()
-          .setCustomId("inv_previous" + interaction.id)
-          .setLabel("◀")
-          .setStyle("SECONDARY")
-          .setDisabled(true),
-        new MessageButton()
-          .setCustomId("inv_next" + interaction.id)
-          .setLabel("▶")
-          .setStyle("SECONDARY")
-          .setDisabled(true)
-      );
-      reply.edit({ components: [end] });
-    });
-
-    return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
-      .addUserOption((option) =>
-        option.setName("user").setDescription("User").setRequired(false)
-      );
+      .addUserOption((option) => option.setName("user").setDescription("User").setRequired(false));
   }
 }

@@ -1,93 +1,85 @@
-import { CommandInteraction, GuildMember, MessageAttachment } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, GuildMember, AttachmentBuilder } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
+import { Command, SoapClient } from "../core/index.js";
 import Jimp from "jimp";
 import getUserData from "../functions/getUserData.js";
-import SQL from "../functions/SQL.js";
-import getMysqlDateTime from "../functions/getMysqlDateTime.js";
+import prisma from "../lib/prisma.js";
+import ms from "ms";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+export default class Ship extends Command {
+  readonly name = "ship";
+  readonly description = "Check the love compatibility between two users";
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
     const user = interaction.member as GuildMember;
     const mention = interaction.options.getMember("user") as GuildMember;
-    let percentage: any = 0;
+    let percentage: number = 0;
 
     if (!mention) {
-      interaction.reply("You have no friends bruh.... ||(choose someone)||");
+      interaction.followUp("You have no friends bruh.... ||(choose someone)||");
       return false;
     }
 
-    const [user1, user2] = await Promise.all([
-      getUserData(user.id),
-      getUserData(mention.id),
-    ]);
+    const [user1, user2] = await Promise.all([getUserData(user.id), getUserData(mention.id)]);
 
-    await SQL("DELETE FROM love WHERE expires<=?", [getMysqlDateTime()]);
+    await prisma.love.deleteMany({
+      where: { expires: { lte: new Date() } },
+    });
 
-    const check = await SQL(
-      "SELECT id FROM love WHERE (user1_id=? AND user2_id=?) OR (user1_id=? AND user2_id=?)",
-      [user1.id, user2.id, user2.id, user1.id]
-    );
+    const existingLove = await prisma.love.findFirst({
+      where: {
+        OR: [
+          { user1_id: user1!.id, user2_id: user2!.id },
+          { user1_id: user2!.id, user2_id: user1!.id },
+        ],
+      },
+    });
 
-    if (!check || !check.length) {
+    if (!existingLove) {
       percentage = Math.round(Math.random() * 100);
-      const date = getMysqlDateTime(4 * 1000 * 60 * 60);
-      await SQL(
-        "INSERT INTO love (rating, user1_id, user2_id, expires) VALUES (?,?,?,?)",
-        [percentage, user1.id, user2.id, date]
-      );
+      const expiresAt = new Date(Date.now() + ms("4h"));
+      await prisma.love.create({
+        data: {
+          rating: percentage,
+          user1_id: user1!.id,
+          user2_id: user2!.id,
+          expires: expiresAt,
+        },
+      });
     } else {
-      percentage = await SQL(
-        "SELECT rating FROM love WHERE (user1_id=? AND user2_id=?) OR (user1_id=? AND user2_id=?)",
-        [user1.id, user2.id, user2.id, user1.id]
-      );
-      percentage = percentage[0].rating;
+      percentage = existingLove.rating;
     }
 
-    let [img_max_x, img_max_y, sender_x, sender_y, target_x, target_y] = [
-      0, 0, 0, 0, 0, 0,
-    ];
-    let img_url = "https://cdn.saltyskypie.com/soapbot/images/love3.png";
+    let [imgMaxX, imgMaxY] = [0, 0];
+    let imgUrl = "https://cdn.saltyskypie.com/soapbot/images/love3.png";
     const font = await Jimp.loadFont(Jimp.FONT_SANS_128_BLACK);
 
     if (percentage < 33) {
-      img_url = "https://cdn.saltyskypie.com/soapbot/images/love1.png";
-      [img_max_x, img_max_y] = [1200, 600];
+      imgUrl = "https://cdn.saltyskypie.com/soapbot/images/love1.png";
+      [imgMaxX, imgMaxY] = [1200, 600];
     } else if (percentage < 66) {
-      img_url = "https://cdn.saltyskypie.com/soapbot/images/love2.png";
-      [img_max_x, img_max_y] = [960, 639];
+      imgUrl = "https://cdn.saltyskypie.com/soapbot/images/love2.png";
+      [imgMaxX, imgMaxY] = [960, 639];
     } else {
-      img_url = "https://cdn.saltyskypie.com/soapbot/images/love3.png";
-      [img_max_x, img_max_y] = [1200, 485];
+      imgUrl = "https://cdn.saltyskypie.com/soapbot/images/love3.png";
+      [imgMaxX, imgMaxY] = [1200, 485];
     }
 
-    sender_x = 30;
-    sender_y = (img_max_y - 256) / 2;
-    target_x = img_max_x - 256 - 30;
-    target_y = (img_max_y - 256) / 2;
+    const senderX = 30;
+    const senderY = (imgMaxY - 256) / 2;
+    const targetX = imgMaxX - 256 - 30;
+    const targetY = (imgMaxY - 256) / 2;
 
     const [image, senderImg, targetImg] = await Promise.all([
-      Jimp.read(img_url),
-      Jimp.read(
-        user.user
-          .displayAvatarURL({ dynamic: true })
-          .replace(/\.[^/.]+$/, ".png")
-      ),
-      Jimp.read(
-        mention.user
-          .displayAvatarURL({ dynamic: true })
-          .replace(/\.[^/.]+$/, ".png")
-      ),
+      Jimp.read(imgUrl),
+      Jimp.read(user.user.displayAvatarURL().replace(/\.[^/.]+$/, ".png")),
+      Jimp.read(mention.user.displayAvatarURL().replace(/\.[^/.]+$/, ".png")),
     ]);
 
-    image.composite(senderImg.resize(256, 256), sender_x, sender_y),
-      image.composite(targetImg.resize(256, 256), target_x, target_y);
+    image.composite(senderImg.resize(256, 256), senderX, senderY);
+    image.composite(targetImg.resize(256, 256), targetX, targetY);
 
     image.print(
       font,
@@ -98,27 +90,22 @@ export default class BotCommand extends Command {
         alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
         alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
       },
-      img_max_x,
-      img_max_y
+      imgMaxX,
+      imgMaxY
     );
 
     image.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
-      const attachment = new MessageAttachment(buffer, "love.png");
+      const attachment = new AttachmentBuilder(buffer, { name: "love.png" });
       interaction.followUp({ files: [attachment] });
     });
 
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
-      .addUserOption((option) =>
-        option.setName("user").setDescription("User").setRequired(true)
-      );
+      .addUserOption((option) => option.setName("user").setDescription("User").setRequired(true));
   }
 }

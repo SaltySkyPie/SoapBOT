@@ -1,27 +1,28 @@
-import { CommandInteraction, GuildMember, MessageEmbed } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import getSoapstatus from "../functions/getSoapStatus.js";
+import { Command, SoapClient } from "../core/index.js";
+import getSoapStatus from "../functions/getSoapStatus.js";
 import checkActiveItem from "../functions/checkActiveItem.js";
 import removeActiveItem from "../functions/removeActiveItem.js";
-import getBaseValue from "../functions/getBaseValue.js";
 import setPoints from "../functions/setPoints.js";
 import getUserData from "../functions/getUserData.js";
 import dmUser from "../functions/dmUser.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
+const ROB_MIN_THRESHOLD = 1000;
+const ROB_FAIL_HARDENER_LOSS = 500;
+const ROB_FAIL_LOSS_PERCENT = 0.1; // 10%
+
+export default class Rob extends Command {
+  readonly name = "rob";
+  readonly description = "Try to rob another user";
+  readonly cooldown = 120; // 2 minutes
+
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
     const user = interaction.member as GuildMember;
     const mention = interaction.options.getMember("user") as GuildMember;
 
     if (!mention) {
-      interaction.reply({
-        content: "BRUH... Are you dumb? Try again with an actual person.",
-      });
+      interaction.reply({ content: "BRUH... Are you dumb? Try again with an actual person." });
       return false;
     }
 
@@ -30,45 +31,36 @@ export default class BotCommand extends Command {
       return false;
     }
 
-    if ((await getSoapstatus(user.id)) != 0) {
-      interaction.reply({
-        content: `You need to pick up your soap first :smirk:`,
-      });
+    if ((await getSoapStatus(user.id)) !== 0) {
+      interaction.reply({ content: `You need to pick up your soap first :smirk:` });
       return false;
     }
 
-    const [victim, robber] = await Promise.all([
-      getUserData(mention.id),
-      getUserData(user.id),
-    ]);
-
-    const min_threshhold = parseInt(await getBaseValue("rob_min_threshhold"));
+    const [victim, robber] = await Promise.all([getUserData(mention.id), getUserData(user.id)]);
 
     if (!victim) {
       interaction.reply({
-        content: `**${
-          mention.displayName
-        }** doen't even have 🧼**${min_threshhold.toLocaleString()}**. Not worth`,
-      });
-      return false;
-    }
-    if (victim.points < min_threshhold) {
-      interaction.reply({
-        content: `**${
-          mention.displayName
-        }** doen't even have 🧼**${min_threshhold.toLocaleString()}**. Not worth`,
-      });
-      return false;
-    }
-    if (robber.points < min_threshhold) {
-      interaction.reply({
-        content: `You need atleast 🧼**${min_threshhold.toLocaleString()}** to rob someone. Imagine being so poor lmao`,
+        content: `**${mention.displayName}** doen't even have 🧼**${ROB_MIN_THRESHOLD.toLocaleString()}**. Not worth`,
       });
       return false;
     }
 
-    const FCSCheck = await checkActiveItem(robber.id, 18);
-    if (FCSCheck) {
+    if (victim.points! < ROB_MIN_THRESHOLD) {
+      interaction.reply({
+        content: `**${mention.displayName}** doen't even have 🧼**${ROB_MIN_THRESHOLD.toLocaleString()}**. Not worth`,
+      });
+      return false;
+    }
+
+    if (robber!.points! < ROB_MIN_THRESHOLD) {
+      interaction.reply({
+        content: `You need atleast 🧼**${ROB_MIN_THRESHOLD.toLocaleString()}** to rob someone. Imagine being so poor lmao`,
+      });
+      return false;
+    }
+
+    const fcsCheck = await checkActiveItem(robber!.id, 18);
+    if (fcsCheck) {
       interaction.reply({
         content: `You were knocked out. You need to get back on your feet first lmao`,
       });
@@ -80,22 +72,19 @@ export default class BotCommand extends Command {
     if (hardenerCheck) {
       await removeActiveItem(victim.id, 2);
 
-      const failDm = new MessageEmbed()
+      const failDm = this.createEmbed()
         .setTitle(
           `${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${interaction.guild?.name} but failed due to you having Soap Hardener equipped!`
         )
-        .setColor("#ff00e4")
         .setDescription(`<#${interaction.channelId}>`);
 
-      const lose = parseInt(await getBaseValue("rob_fail_hardener"));
-
       interaction.reply({
-        content: `You tried to steal from **${mention.displayName}** but when you tried to lift their soap, you realized it's 69x heavier. You ended up losing **🧼${lose}**.`,
+        content: `You tried to steal from **${mention.displayName}** but when you tried to lift their soap, you realized it's 69x heavier. You ended up losing **🧼${ROB_FAIL_HARDENER_LOSS}**.`,
       });
       await dmUser(mention, { embeds: [failDm] });
       await Promise.all([
-        setPoints(mention.id, victim.points + lose),
-        setPoints(user.id, robber.points - lose),
+        setPoints(mention.id, Number(victim.points) + ROB_FAIL_HARDENER_LOSS),
+        setPoints(user.id, Number(robber!.points) - ROB_FAIL_HARDENER_LOSS),
       ]);
 
       return true;
@@ -105,55 +94,45 @@ export default class BotCommand extends Command {
 
     if (success) {
       const percent = Math.round(Math.random() * 100 + 1) / 100;
-      const successDm = new MessageEmbed()
+      const successDm = this.createEmbed()
         .setTitle(
           `${user.displayName} (${user.user.username}#${user.user.discriminator}) stole from you in ${interaction.guild?.name}!`
         )
-        .setColor("#ff00e4")
         .setDescription(`<#${interaction.channelId}>`);
       await dmUser(mention, { embeds: [successDm] });
 
-      const stolenAmount = Math.round(percent * victim.points);
+      const stolenAmount = Math.round(percent * Number(victim.points));
       await Promise.all([
-        setPoints(mention.id, victim.points - stolenAmount),
-        setPoints(user.id, robber.points + stolenAmount),
+        setPoints(mention.id, Number(victim.points) - stolenAmount),
+        setPoints(user.id, Number(robber!.points) + stolenAmount),
       ]);
+
       interaction.reply({
-        content: `You stole 🧼**${stolenAmount.toLocaleString()}** from **${
-          mention.displayName
-        }**! (${Math.round(percent * 100)}% of their total 🧼).`,
+        content: `You stole 🧼**${stolenAmount.toLocaleString()}** from **${mention.displayName}**! (${Math.round(percent * 100)}% of their total 🧼).`,
       });
     } else {
-      const loss_percentage = parseFloat(await getBaseValue("rob_fail_loss"));
-
-      const failDm = new MessageEmbed()
+      const failDm = this.createEmbed()
         .setTitle(
           `${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${interaction.guild?.name} but failed!`
         )
-        .setColor("#ff00e4")
         .setDescription(`<#${interaction.channelId}>`);
       await dmUser(mention, { embeds: [failDm] });
 
-      const lostAmount = Math.round(loss_percentage * robber.points);
+      const lostAmount = Math.round(ROB_FAIL_LOSS_PERCENT * Number(robber!.points));
       await Promise.all([
-        setPoints(mention.id, victim.points + lostAmount),
-        setPoints(user.id, robber.points - lostAmount),
+        setPoints(mention.id, Number(victim.points) + lostAmount),
+        setPoints(user.id, Number(robber!.points) - lostAmount),
       ]);
 
       interaction.reply({
-        content: `You tried to steal from **${
-          mention.displayName
-        }** but **slipped** on your soap and paid 🧼**${lostAmount.toLocaleString()}**`,
+        content: `You tried to steal from **${mention.displayName}** but **slipped** on your soap and paid 🧼**${lostAmount.toLocaleString()}**`,
       });
     }
 
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
+  async getSlash() {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)

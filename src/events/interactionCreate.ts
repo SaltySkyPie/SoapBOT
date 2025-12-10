@@ -1,34 +1,30 @@
-import { CommandInteraction, Interaction, MessageEmbed } from "discord.js";
-import BotCommand from "../commands/ping.js";
+import { Interaction, EmbedBuilder, MessageFlags } from "discord.js";
+import { Command, SoapClient, SOAP_COLOR } from "../core/index.js";
 import checkBan from "../functions/checkBan.js";
 import checkCooldown from "../functions/checkCooldown.js";
 import checkUserCreation from "../functions/checkUserCreation.js";
-import getMysqlDateTime from "../functions/getMysqlDateTime.js";
 import log from "../functions/log.js";
+import { getCurrentTimestamp } from "../utils/time.js";
 import putOnCooldown from "../functions/putOnCooldown.js";
-import SQL from "../functions/SQL.js";
+import prisma from "../lib/prisma.js";
 import updateAvatar from "../functions/updateAvatar.js";
 import updateTag from "../functions/updateTag.js";
-import SoapClient from "../types/client";
 
-export default async function execute(
-  client: SoapClient,
-  interaction: Interaction
-) {
+export default async function execute(client: SoapClient, interaction: Interaction) {
   await checkUserCreation(interaction.user.id);
 
   if (interaction.isCommand()) {
-    const i: CommandInteraction = interaction as CommandInteraction;
+    const i = interaction.isChatInputCommand() ? interaction : (interaction as any);
 
-    const command: BotCommand = client.commands.get(interaction.commandName);
+    const command: Command | undefined = client.commands.get(interaction.commandName);
     if (!command) return;
 
-    const u = i.options.getUser("user");
+    const u = interaction.isChatInputCommand() ? i.options.getUser("user") : null;
     await Promise.all([
       u ? checkUserCreation(u.id) : null,
-      SQL("DELETE FROM active_items WHERE expiration_date<=?", [
-        getMysqlDateTime(),
-      ]),
+      prisma.active_items.deleteMany({
+        where: { expiration_date: { lte: getCurrentTimestamp() } },
+      }),
     ]);
 
     const [cooldown, ban] = await Promise.all([
@@ -39,12 +35,12 @@ export default async function execute(
     if (ban) {
       interaction.reply({
         embeds: [
-          new MessageEmbed()
-            .setColor("#ff00e4")
+          new EmbedBuilder()
+            .setColor(SOAP_COLOR)
             .setTitle("You are banned!")
             .setDescription(`for **${ban}**`),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       log(
         "INFO",
@@ -57,14 +53,14 @@ export default async function execute(
     if (cooldown) {
       interaction.reply({
         embeds: [
-          new MessageEmbed()
-            .setColor("#ff00e4")
+          new EmbedBuilder()
+            .setColor(SOAP_COLOR)
             .setTitle(`Slow down bruh...`)
             .setDescription(
               `Please wait **${cooldown}** before running **/${command.name}** again.`
             ),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       log(
         "INFO",
@@ -88,9 +84,5 @@ export default async function execute(
   }
 
   updateTag(interaction.user.id, interaction.user.tag);
-  updateAvatar(
-    interaction.user.id,
-    interaction.user.displayAvatarURL({ dynamic: true })
-  );
-  return;
+  updateAvatar(interaction.user.id, interaction.user.displayAvatarURL());
 }

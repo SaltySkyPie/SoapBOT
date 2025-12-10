@@ -1,98 +1,62 @@
-import { CommandInteraction, MessageEmbed } from "discord.js";
-import SoapClient from "../types/client";
+import { ChatInputCommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import Command from "../types/Command.js";
-import SQL from "../functions/SQL.js";
+import { Command, SoapClient } from "../core/index.js";
+import prisma from "../lib/prisma.js";
 import getServerCount from "../functions/getServerCount.js";
-import getTimeRemaining from "../functions/getTimeRemaining.js";
+import { formatDuration } from "../utils/time.js";
 
-export default class BotCommand extends Command {
-  constructor(id: number, name: string, description: string) {
-    super(id, name, description);
-  }
-  async execute(client: SoapClient, interaction: CommandInteraction) {
-    const [
-      guilds,
-      economy_wallet,
-      economy_bank,
-      economy_max_bank,
-      users,
-      items,
-      commands,
-    ] = await Promise.all([
-      getServerCount(client).catch(() => {
-        return "loading...";
-      }),
-      SQL("SELECT SUM(points) AS sumpoints FROM users"),
-      SQL("SELECT SUM(stash) AS sumpoints FROM users"),
-      SQL("SELECT SUM(max_stash) AS sumpoints FROM users"),
-      SQL("SELECT COUNT(id) AS countusers FROM users"),
-      SQL("SELECT COUNT(id) AS countitems FROM items"),
-      SQL("SELECT COUNT(id) AS countcommands FROM commands"),
-    ]);
-    //interaction.reply(`🧼**Soap BOT** is in **${guilds}** servers with **${users[0].countusers.toLocaleString()}** users. Total soap in hands: **🧼${economy_wallet[0].sumpoints.toLocaleString()}**. Total soap in stashes: **🧼${economy_bank[0].sumpoints.toLocaleString()}**. Total soap in hands and stashes combined: 🧼**${(economy_wallet[0].sumpoints + economy_bank[0].sumpoints).toLocaleString()}**. Total soap that can be stored in stash: **🧼${economy_max_bank[0].sumpoints.toLocaleString()}**. This server is running on **Shard ${interaction.guild?.shardId}**`);
-    const remaining = getTimeRemaining(
-      `${client.readyAt?.toISOString()}`,
-      `${new Date(Date.now()).toISOString()}`
-    );
-    const d = remaining.days ? `${remaining.days}d ` : "";
-    const h = remaining.hours ? `${remaining.hours}h ` : "";
-    const m = remaining.minutes ? `${remaining.minutes}m ` : "";
-    const s = remaining.seconds ? `${remaining.seconds}s ` : "0s";
-    const uptime = `${d + h + m + s}`;
+export default class Stats extends Command {
+  readonly name = "stats";
+  readonly description = "View Soap BOT statistics";
 
-    const StatsEmbed = new MessageEmbed()
-      .setColor("#ff00e4")
+  async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
+    const [guilds, walletAgg, bankAgg, maxBankAgg, usersCount, itemsCount, commandsCount] =
+      await Promise.all([
+        getServerCount(client).catch(() => "loading..."),
+        prisma.users.aggregate({ _sum: { points: true } }),
+        prisma.users.aggregate({ _sum: { stash: true } }),
+        prisma.users.aggregate({ _sum: { max_stash: true } }),
+        prisma.users.count(),
+        prisma.items.count(),
+        prisma.commands.count(),
+      ]);
+
+    const economyWallet = Number(walletAgg._sum.points || 0);
+    const economyBank = Number(bankAgg._sum.stash || 0);
+    const economyMaxBank = Number(maxBankAgg._sum.max_stash || 0);
+
+    const uptimeMs = client.readyAt ? Date.now() - client.readyAt.getTime() : 0;
+    const uptime = formatDuration(uptimeMs);
+
+    const embed = this.createEmbed()
       .setAuthor({
         name: "Soap BOT stats",
         iconURL: "https://cdn.saltyskypie.com/soapbot/images/soap.png",
       })
       .addFields([
         { name: `\u200B`, value: `**Servers**: ${guilds}` },
+        { name: `\u200B`, value: `**Users**: ${usersCount.toLocaleString()}` },
+        { name: `\u200B`, value: `**Commands**: ${commandsCount.toLocaleString()}` },
+        { name: `\u200B`, value: `**Items**: ${itemsCount.toLocaleString()}` },
+        { name: `\u200B`, value: `**Total soap in hands**: 🧼${economyWallet.toLocaleString()}` },
+        { name: `\u200B`, value: `**Total soap in stashes**: 🧼${economyBank.toLocaleString()}` },
         {
           name: `\u200B`,
-          value: `**Users**: ${users[0].countusers.toLocaleString()}`,
+          value: `**Total soap that can be stored in stash**: 🧼${economyMaxBank.toLocaleString()}`,
         },
         {
           name: `\u200B`,
-          value: `**Commands**: ${commands[0].countcommands.toLocaleString()}`,
-        },
-        {
-          name: `\u200B`,
-          value: `**Items**: ${items[0].countitems.toLocaleString()}`,
-        },
-        {
-          name: `\u200B`,
-          value: `**Total soap in hands**: 🧼${economy_wallet[0].sumpoints.toLocaleString()}`,
-        },
-        {
-          name: `\u200B`,
-          value: `**Total soap in stashes**: 🧼${economy_bank[0].sumpoints.toLocaleString()}`,
-        },
-        {
-          name: `\u200B`,
-          value: `**Total soap that can be stored in stash**: 🧼${economy_max_bank[0].sumpoints.toLocaleString()}`,
-        },
-        {
-          name: `\u200B`,
-          value: `**Total soap in hands and stashes combined**: 🧼${(
-            economy_wallet[0].sumpoints + economy_bank[0].sumpoints
-          ).toLocaleString()}`,
+          value: `**Total soap in hands and stashes combined**: 🧼${(economyWallet + economyBank).toLocaleString()}`,
         },
         { name: `\u200B`, value: `**Uptime**: ${uptime}` },
         { name: `\u200B`, value: `**Shard**: #${interaction.guild?.shardId}` },
       ]);
 
-    interaction.reply({ embeds: [StatsEmbed] });
+    interaction.reply({ embeds: [embed] });
     return true;
   }
 
-  async getSlash(): Promise<
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">
-  > {
-    return new SlashCommandBuilder()
-      .setName(this.name)
-      .setDescription(this.description);
+  async getSlash() {
+    return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
   }
 }

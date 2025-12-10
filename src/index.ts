@@ -8,7 +8,6 @@
 */
 
 import "dotenv/config";
-import SQL from "./functions/SQL.js";
 import log from "./functions/log.js";
 import { ShardingManager } from "discord.js";
 
@@ -36,10 +35,7 @@ manager.on("shardCreate", (shard) => {
 manager.spawn({ timeout: 30000, delay: 1000 }).then((shards) => {
   shards.forEach((shard) => {
     shard.on("message", (message) => {
-      log(
-        "INFO",
-        `Shard ${shard.id} message : ${message._eval} : ${message._result}`
-      );
+      log("INFO", `Shard ${shard.id} message : ${message._eval} : ${message._result}`);
     });
     shard.on("death", () => {
       log("INFO", -1, `Shard ${shard.id} died.`);

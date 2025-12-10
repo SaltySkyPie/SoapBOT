@@ -1,12 +1,25 @@
-import SQL from "./SQL.js";
+import prisma from "../lib/prisma.js";
 
 export default async function setItemAmount(
-  userId: number,
-  itemId: number,
+  userId: number | bigint,
+  itemId: number | bigint,
   amount: number
 ) {
-  return await SQL(
-    "UPDATE inventory SET amount=? WHERE user_id=? AND item_id=?",
-    [amount, userId, itemId]
-  );
+  const inventory = await prisma.inventory.findFirst({
+    where: {
+      user_id: BigInt(userId),
+      item_id: BigInt(itemId),
+    },
+  });
+
+  if (!inventory) return null;
+
+  return await prisma.inventory.update({
+    where: {
+      id: inventory.id,
+    },
+    data: {
+      amount: amount,
+    },
+  });
 }
