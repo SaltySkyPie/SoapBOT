@@ -5,8 +5,17 @@
   "scripts": {
     "build": "tsc",
     "start": "node out/index.js",
-    "dev": "tsx watch src/bot.ts",
-    "deploy": "npm run build && npx prisma generate && npx prisma migrate deploy && npm run start"
+    "dev": "tsx watch --clear-screen=false src/bot.ts 2>&1 | tee /dev/stderr",
+    "dev:debug": "tsx watch --inspect src/bot.ts",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint",
+    "fix": "npm run lint:fix && npm run format",
+    "deploy": "npm run build && npx prisma generate && npx prisma migrate deploy && npm run start",
+    "prepare": "husky"
   },
   "author": "SaltySkyPie#3737",
   "license": "ISC",
@@ -21,12 +30,27 @@
     "mysql2": "^3.15.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@tsconfig/recommended": "^1.0.7",
     "@types/ms": "^2.1.0",
     "@types/node": "^22.10.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
     "prisma": "^6.1.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.49.0"
   },
-  "type": "module"
+  "type": "module",
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
 }

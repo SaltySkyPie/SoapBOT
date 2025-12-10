@@ -2,10 +2,7 @@ import { Snowflake } from "discord.js";
 import prisma from "../lib/prisma.js";
 import { getFutureTimestamp } from "../utils/time.js";
 
-export default async function putOnCooldown(
-  userId: Snowflake,
-  commandId: number | bigint
-) {
+export default async function putOnCooldown(userId: Snowflake, commandId: number | bigint) {
   const [command, user] = await Promise.all([
     prisma.commands.findUnique({
       where: { id: BigInt(commandId) },

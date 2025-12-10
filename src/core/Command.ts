@@ -9,7 +9,10 @@ import type SoapClient from "./SoapClient.js";
 
 export const SOAP_COLOR = "#ff00e4" as const;
 
-type SlashCommandResult = SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
+type SlashCommandResult =
+  | SlashCommandBuilder
+  | SlashCommandOptionsOnlyBuilder
+  | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 
 /**
  * Base class for all bot commands.
@@ -34,10 +37,7 @@ export default abstract class Command {
    * @param interaction - The slash command interaction
    * @returns true if cooldown should be applied, false otherwise
    */
-  abstract execute(
-    client: SoapClient,
-    interaction: ChatInputCommandInteraction
-  ): Promise<boolean>;
+  abstract execute(client: SoapClient, interaction: ChatInputCommandInteraction): Promise<boolean>;
 
   /**
    * Build the slash command definition for Discord API registration.

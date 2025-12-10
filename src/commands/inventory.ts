@@ -51,7 +51,11 @@ export default class Inventory extends Command {
       }));
     };
 
-    const buildEmbed = (items: InventoryItem[], currentPage: number, maxPage: number): EmbedBuilder => {
+    const buildEmbed = (
+      items: InventoryItem[],
+      currentPage: number,
+      maxPage: number
+    ): EmbedBuilder => {
       const embed = this.createEmbed()
         .setAuthor({ name: `${user.displayName}'s inventory`, iconURL: avatar })
         .setFooter({ text: `Page ${currentPage + 1}/${maxPage + 1}` });
@@ -81,8 +85,6 @@ export default class Inventory extends Command {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
-      .addUserOption((option) =>
-        option.setName("user").setDescription("User").setRequired(false)
-      );
+      .addUserOption((option) => option.setName("user").setDescription("User").setRequired(false));
   }
 }

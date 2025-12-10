@@ -6,9 +6,9 @@ import {
   ButtonStyle,
   Message,
   ComponentType,
+  EmbedBuilder,
 } from "discord.js";
 import { Item, SoapClient, SOAP_COLOR } from "../core/index.js";
-import { EmbedBuilder } from "discord.js";
 import getPoints from "../functions/getPoints.js";
 import setPoints from "../functions/setPoints.js";
 import prisma from "../lib/prisma.js";
@@ -56,7 +56,7 @@ export default class SoapParty extends Item {
     });
 
     let joined = 0;
-    let joiners: string[] = [];
+    const joiners: string[] = [];
 
     collector.on("collect", async (i) => {
       if (!i.customId.includes(interaction.id)) return;

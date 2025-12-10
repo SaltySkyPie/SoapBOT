@@ -14,8 +14,6 @@ export default class Ping extends Command {
   }
 
   async getSlash() {
-    return new SlashCommandBuilder()
-      .setName(this.name)
-      .setDescription(this.description);
+    return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
   }
 }

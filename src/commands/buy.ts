@@ -73,18 +73,13 @@ export default class Buy extends Command {
       .setName(this.name)
       .setDescription(this.description)
       .addStringOption((option) => {
-        option
-          .setName("item")
-          .setDescription("Item you want to buy")
-          .setRequired(true);
+        option.setName("item").setDescription("Item you want to buy").setRequired(true);
 
         for (const item of items) {
           option.addChoices({ name: item.item_name!, value: item.item_name!.toLowerCase() });
         }
         return option;
       })
-      .addStringOption((option) =>
-        option.setName("amount").setDescription("Amount")
-      );
+      .addStringOption((option) => option.setName("amount").setDescription("Amount"));
   }
 }

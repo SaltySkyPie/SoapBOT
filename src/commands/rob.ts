@@ -36,10 +36,7 @@ export default class Rob extends Command {
       return false;
     }
 
-    const [victim, robber] = await Promise.all([
-      getUserData(mention.id),
-      getUserData(user.id),
-    ]);
+    const [victim, robber] = await Promise.all([getUserData(mention.id), getUserData(user.id)]);
 
     if (!victim) {
       interaction.reply({
@@ -64,7 +61,9 @@ export default class Rob extends Command {
 
     const fcsCheck = await checkActiveItem(robber!.id, 18);
     if (fcsCheck) {
-      interaction.reply({ content: `You were knocked out. You need to get back on your feet first lmao` });
+      interaction.reply({
+        content: `You were knocked out. You need to get back on your feet first lmao`,
+      });
       return true;
     }
 
@@ -74,7 +73,9 @@ export default class Rob extends Command {
       await removeActiveItem(victim.id, 2);
 
       const failDm = this.createEmbed()
-        .setTitle(`${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${interaction.guild?.name} but failed due to you having Soap Hardener equipped!`)
+        .setTitle(
+          `${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${interaction.guild?.name} but failed due to you having Soap Hardener equipped!`
+        )
         .setDescription(`<#${interaction.channelId}>`);
 
       interaction.reply({
@@ -94,7 +95,9 @@ export default class Rob extends Command {
     if (success) {
       const percent = Math.round(Math.random() * 100 + 1) / 100;
       const successDm = this.createEmbed()
-        .setTitle(`${user.displayName} (${user.user.username}#${user.user.discriminator}) stole from you in ${interaction.guild?.name}!`)
+        .setTitle(
+          `${user.displayName} (${user.user.username}#${user.user.discriminator}) stole from you in ${interaction.guild?.name}!`
+        )
         .setDescription(`<#${interaction.channelId}>`);
       await dmUser(mention, { embeds: [successDm] });
 
@@ -109,7 +112,9 @@ export default class Rob extends Command {
       });
     } else {
       const failDm = this.createEmbed()
-        .setTitle(`${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${interaction.guild?.name} but failed!`)
+        .setTitle(
+          `${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to steal from you in ${interaction.guild?.name} but failed!`
+        )
         .setDescription(`<#${interaction.channelId}>`);
       await dmUser(mention, { embeds: [failDm] });
 

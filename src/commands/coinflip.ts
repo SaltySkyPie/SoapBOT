@@ -26,7 +26,7 @@ export default class Coinflip extends Command {
     }
 
     const points = await getPoints(interaction.user.id);
-    let decoded = parseAmount(bet, points);
+    const decoded = parseAmount(bet, points);
 
     if (decoded === null || decoded <= 0) {
       interaction.reply({ content: `I can only slip on positive numbers...` });
@@ -54,13 +54,21 @@ export default class Coinflip extends Command {
     const result_image = success
       ? "https://cdn.saltyskypie.com/soapbot/gifs/flip-success.gif"
       : side.toLowerCase() == "heads"
-      ? "https://cdn.saltyskypie.com/soapbot/gifs/heads-fail.gif"
-      : "https://cdn.saltyskypie.com/soapbot/gifs/tails-fail.gif";
+        ? "https://cdn.saltyskypie.com/soapbot/gifs/heads-fail.gif"
+        : "https://cdn.saltyskypie.com/soapbot/gifs/tails-fail.gif";
 
     const result = this.createEmbed()
-      .setTitle(success ? `**${member.displayName}** won the coin flip!` : `**${member.displayName}** lost the coin flip!`)
+      .setTitle(
+        success
+          ? `**${member.displayName}** won the coin flip!`
+          : `**${member.displayName}** lost the coin flip!`
+      )
       .setAuthor({ name: `${member.displayName}'s coin flip`, iconURL: avatar })
-      .setDescription(success ? `and earned 🧼**${(decoded * 2).toLocaleString()}**!` : `and lost 🧼**${decoded.toLocaleString()}**!`)
+      .setDescription(
+        success
+          ? `and earned 🧼**${(decoded * 2).toLocaleString()}**!`
+          : `and lost 🧼**${decoded.toLocaleString()}**!`
+      )
       .setImage(result_image);
 
     setTimeout(async () => {
@@ -83,16 +91,10 @@ export default class Coinflip extends Command {
           .setName("side")
           .setDescription("Side you want to bet on")
           .setRequired(true)
-          .addChoices(
-            { name: "Heads", value: "heads" },
-            { name: "Tails", value: "tails" }
-          )
+          .addChoices({ name: "Heads", value: "heads" }, { name: "Tails", value: "tails" })
       )
       .addStringOption((option) =>
-        option
-          .setName("bet")
-          .setDescription("How much soap do you bet?")
-          .setRequired(true)
+        option.setName("bet").setDescription("How much soap do you bet?").setRequired(true)
       );
   }
 }

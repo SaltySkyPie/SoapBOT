@@ -22,10 +22,7 @@ export default class Ship extends Command {
       return false;
     }
 
-    const [user1, user2] = await Promise.all([
-      getUserData(user.id),
-      getUserData(mention.id),
-    ]);
+    const [user1, user2] = await Promise.all([getUserData(user.id), getUserData(mention.id)]);
 
     await prisma.love.deleteMany({
       where: { expires: { lte: new Date() } },
@@ -109,8 +106,6 @@ export default class Ship extends Command {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
-      .addUserOption((option) =>
-        option.setName("user").setDescription("User").setRequired(true)
-      );
+      .addUserOption((option) => option.setName("user").setDescription("User").setRequired(true));
   }
 }

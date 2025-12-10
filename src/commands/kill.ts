@@ -12,7 +12,9 @@ export default class Kill extends Command {
     const user = interaction.member as GuildMember;
 
     if (!target) {
-      interaction.reply({ content: "You actually need a target to kill... thats a common sense tbh" });
+      interaction.reply({
+        content: "You actually need a target to kill... thats a common sense tbh",
+      });
       return false;
     }
 
@@ -21,16 +23,14 @@ export default class Kill extends Command {
       return false;
     }
 
-    const killMessages = await prisma.killMessage.findMany();
+    const killMessages = await prisma.kill_msg.findMany();
     const randomKill = killMessages[Math.floor(Math.random() * killMessages.length)];
     const kill = randomKill.message
       .toString()
       .replaceAll("{1}", `**${user.displayName}**`)
       .replaceAll("{0}", `**${target.displayName}**`);
 
-    const embed = this.createEmbed()
-      .setTitle(":knife: Kill summary :knife:")
-      .setDescription(kill);
+    const embed = this.createEmbed().setTitle(":knife: Kill summary :knife:").setDescription(kill);
 
     interaction.reply({ embeds: [embed] });
     return true;
@@ -40,8 +40,6 @@ export default class Kill extends Command {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
-      .addUserOption((option) =>
-        option.setName("user").setDescription("Victim").setRequired(true)
-      );
+      .addUserOption((option) => option.setName("user").setDescription("Victim").setRequired(true));
   }
 }

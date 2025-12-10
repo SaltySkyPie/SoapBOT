@@ -10,23 +10,16 @@ export default class Stats extends Command {
   readonly description = "View Soap BOT statistics";
 
   async execute(client: SoapClient, interaction: ChatInputCommandInteraction) {
-    const [
-      guilds,
-      walletAgg,
-      bankAgg,
-      maxBankAgg,
-      usersCount,
-      itemsCount,
-      commandsCount,
-    ] = await Promise.all([
-      getServerCount(client).catch(() => "loading..."),
-      prisma.users.aggregate({ _sum: { points: true } }),
-      prisma.users.aggregate({ _sum: { stash: true } }),
-      prisma.users.aggregate({ _sum: { max_stash: true } }),
-      prisma.users.count(),
-      prisma.items.count(),
-      prisma.commands.count(),
-    ]);
+    const [guilds, walletAgg, bankAgg, maxBankAgg, usersCount, itemsCount, commandsCount] =
+      await Promise.all([
+        getServerCount(client).catch(() => "loading..."),
+        prisma.users.aggregate({ _sum: { points: true } }),
+        prisma.users.aggregate({ _sum: { stash: true } }),
+        prisma.users.aggregate({ _sum: { max_stash: true } }),
+        prisma.users.count(),
+        prisma.items.count(),
+        prisma.commands.count(),
+      ]);
 
     const economyWallet = Number(walletAgg._sum.points || 0);
     const economyBank = Number(bankAgg._sum.stash || 0);
@@ -47,8 +40,14 @@ export default class Stats extends Command {
         { name: `\u200B`, value: `**Items**: ${itemsCount.toLocaleString()}` },
         { name: `\u200B`, value: `**Total soap in hands**: 🧼${economyWallet.toLocaleString()}` },
         { name: `\u200B`, value: `**Total soap in stashes**: 🧼${economyBank.toLocaleString()}` },
-        { name: `\u200B`, value: `**Total soap that can be stored in stash**: 🧼${economyMaxBank.toLocaleString()}` },
-        { name: `\u200B`, value: `**Total soap in hands and stashes combined**: 🧼${(economyWallet + economyBank).toLocaleString()}` },
+        {
+          name: `\u200B`,
+          value: `**Total soap that can be stored in stash**: 🧼${economyMaxBank.toLocaleString()}`,
+        },
+        {
+          name: `\u200B`,
+          value: `**Total soap in hands and stashes combined**: 🧼${(economyWallet + economyBank).toLocaleString()}`,
+        },
         { name: `\u200B`, value: `**Uptime**: ${uptime}` },
         { name: `\u200B`, value: `**Shard**: #${interaction.guild?.shardId}` },
       ]);
@@ -58,8 +57,6 @@ export default class Stats extends Command {
   }
 
   async getSlash() {
-    return new SlashCommandBuilder()
-      .setName(this.name)
-      .setDescription(this.description);
+    return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
   }
 }

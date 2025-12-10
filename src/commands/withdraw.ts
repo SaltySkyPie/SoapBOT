@@ -19,7 +19,7 @@ export default class Withdraw extends Command {
     ]);
 
     const enteredAmount = interaction.options.getString("amount");
-    let decoded = parseAmount(enteredAmount, currentStashBalance);
+    const decoded = parseAmount(enteredAmount, currentStashBalance);
 
     if (decoded === null || decoded <= 0) {
       interaction.reply({ content: `I can only slip on positive numbers...` });
@@ -32,7 +32,9 @@ export default class Withdraw extends Command {
     }
 
     if (currentStashBalance === 0) {
-      interaction.reply({ content: `You have literally zero in your stash. Imagine being so poor lmao` });
+      interaction.reply({
+        content: `You have literally zero in your stash. Imagine being so poor lmao`,
+      });
       return false;
     }
 

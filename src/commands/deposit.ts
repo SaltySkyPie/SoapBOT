@@ -32,7 +32,9 @@ export default class Deposit extends Command {
     }
 
     if (!currentPoints) {
-      interaction.reply({ content: `You have literally zero in your hand. Imagine being so poor lmao` });
+      interaction.reply({
+        content: `You have literally zero in your hand. Imagine being so poor lmao`,
+      });
       return false;
     }
 

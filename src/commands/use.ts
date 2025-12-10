@@ -57,9 +57,7 @@ export default class Use extends Command {
 
     if (item.targetable) {
       const target = await getUserData(
-        interaction.options.getUser("user")?.id
-          ? interaction.options.getUser("user")!.id
-          : "0"
+        interaction.options.getUser("user")?.id ? interaction.options.getUser("user")!.id : "0"
       );
 
       if (!target) {
@@ -136,10 +134,7 @@ export default class Use extends Command {
       .setName(this.name)
       .setDescription(this.description)
       .addStringOption((option) => {
-        option
-          .setName("item")
-          .setDescription("Item you want to use")
-          .setRequired(true);
+        option.setName("item").setDescription("Item you want to use").setRequired(true);
 
         for (const item of items) {
           option.addChoices({ name: item.item_name!, value: item.item_name!.toLowerCase() });
@@ -152,9 +147,7 @@ export default class Use extends Command {
           .setDescription("Amount of the selected item you want to use at the same time.")
       )
       .addUserOption((option) =>
-        option
-          .setName("user")
-          .setDescription("Select a user if item is targetable")
+        option.setName("user").setDescription("Select a user if item is targetable")
       );
   }
 }

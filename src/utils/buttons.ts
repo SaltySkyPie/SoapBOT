@@ -26,15 +26,13 @@ export function createActionButton(
   disabled = false
 ): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(customId)
-      .setLabel(label)
-      .setStyle(style)
-      .setDisabled(disabled)
+    new ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style).setDisabled(disabled)
   );
 }
 
-export function disableButtons(row: ActionRowBuilder<ButtonBuilder>): ActionRowBuilder<ButtonBuilder> {
+export function disableButtons(
+  row: ActionRowBuilder<ButtonBuilder>
+): ActionRowBuilder<ButtonBuilder> {
   const newRow = new ActionRowBuilder<ButtonBuilder>();
   for (const component of row.components) {
     newRow.addComponents(ButtonBuilder.from(component).setDisabled(true));

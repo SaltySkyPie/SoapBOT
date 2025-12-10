@@ -47,10 +47,7 @@ export default class Give extends Command {
       return false;
     }
 
-    const [target, origin] = await Promise.all([
-      getUserData(mention.id),
-      getUserData(user.id),
-    ]);
+    const [target, origin] = await Promise.all([getUserData(mention.id), getUserData(user.id)]);
 
     await Promise.all([
       setPoints(origin!.user_id!, Number(origin!.points) - amount),

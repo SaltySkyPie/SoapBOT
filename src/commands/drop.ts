@@ -29,7 +29,9 @@ export default class Drop extends Command {
     const target = interaction.options.getMember("user") as GuildMember;
 
     if (!target) {
-      interaction.reply({ content: "Soap on a rope saves the day. Try again with an actual person." });
+      interaction.reply({
+        content: "Soap on a rope saves the day. Try again with an actual person.",
+      });
       return false;
     }
 
@@ -59,7 +61,9 @@ export default class Drop extends Command {
     if (ropeCheck) {
       await removeActiveItem(targetUserId, 1);
       const failDm = this.createEmbed()
-        .setTitle(`${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to drop your 🧼 in ${interaction.guild!.name} but failed due to you having Rope equipped!`)
+        .setTitle(
+          `${user.displayName} (${user.user.username}#${user.user.discriminator}) tried to drop your 🧼 in ${interaction.guild!.name} but failed due to you having Rope equipped!`
+        )
         .setDescription(`<#${interaction.channelId}>`);
 
       dmUser(target, { embeds: [failDm] });
@@ -74,7 +78,9 @@ export default class Drop extends Command {
 
     const dropEmbed = this.createEmbed()
       .setTitle("Oh no!")
-      .setDescription(`**${target.displayName}** dropped the soap! Click the button to pick up the soap!\nYou have 5 minutes to pick up your soap!`)
+      .setDescription(
+        `**${target.displayName}** dropped the soap! Click the button to pick up the soap!\nYou have 5 minutes to pick up your soap!`
+      )
       .setImage(image);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -85,7 +91,9 @@ export default class Drop extends Command {
     );
 
     const dm = this.createEmbed()
-      .setTitle(`${user.displayName} (${user.user.username}#${user.user.discriminator}) dropped your 🧼 in ${interaction.guild!.name}!`)
+      .setTitle(
+        `${user.displayName} (${user.user.username}#${user.user.discriminator}) dropped your 🧼 in ${interaction.guild!.name}!`
+      )
       .setDescription(`<#${interaction.channelId}>`);
 
     dmUser(target, { embeds: [dm] });
@@ -127,7 +135,9 @@ export default class Drop extends Command {
 
       const pickUpEmbed = this.createEmbed()
         .setTitle("Oh yeah!")
-        .setDescription(`**${target.displayName}** is picking up their soap! Click the "DADDY" button to get some 🧼!\nYou have 10 seconds to do so!`)
+        .setDescription(
+          `**${target.displayName}** is picking up their soap! Click the "DADDY" button to get some 🧼!\nYou have 10 seconds to do so!`
+        )
         .setImage(pickupImage);
 
       const daddyRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -151,7 +161,7 @@ export default class Drop extends Command {
       pickupCollector.on("collect", async (pi) => {
         if (pi.customId !== "soap_daddy" + interaction.id) return;
         const earned = Math.floor(Math.random() * (1500 - 750 + 1) + 750);
-        let points = await getPoints(pi.user.id);
+        const points = await getPoints(pi.user.id);
         await setPoints(pi.user.id, points + earned);
 
         const daddyDisabledRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -181,7 +191,7 @@ export default class Drop extends Command {
         pickupMsg.edit({ components: [daddyEndRow] });
 
         setTimeout(async () => {
-          let points = await getPoints(target.id);
+          const points = await getPoints(target.id);
           setPoints(target.id, points + pickupEarned);
           (interaction.channel as any).send(
             `**${target.displayName}** has picked up their soap and earned 🧼**${pickupEarned.toLocaleString()}**!`
@@ -222,8 +232,6 @@ export default class Drop extends Command {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
-      .addUserOption((option) =>
-        option.setName("user").setDescription("User").setRequired(true)
-      );
+      .addUserOption((option) => option.setName("user").setDescription("User").setRequired(true));
   }
 }

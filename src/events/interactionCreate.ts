@@ -42,7 +42,11 @@ export default async function execute(client: SoapClient, interaction: Interacti
         ],
         ephemeral: true,
       });
-      log("INFO", global.shardId, `${i.user.tag} issued command /${command.name} in ${i.guild?.name} but was banned.`);
+      log(
+        "INFO",
+        global.shardId,
+        `${i.user.tag} issued command /${command.name} in ${i.guild?.name} but was banned.`
+      );
       return;
     }
 
@@ -52,11 +56,17 @@ export default async function execute(client: SoapClient, interaction: Interacti
           new EmbedBuilder()
             .setColor(SOAP_COLOR)
             .setTitle(`Slow down bruh...`)
-            .setDescription(`Please wait **${cooldown}** before running **/${command.name}** again.`),
+            .setDescription(
+              `Please wait **${cooldown}** before running **/${command.name}** again.`
+            ),
         ],
         ephemeral: true,
       });
-      log("INFO", global.shardId, `${i.user.tag} issued command /${command.name} in ${i.guild?.name} but was on cooldown.`);
+      log(
+        "INFO",
+        global.shardId,
+        `${i.user.tag} issued command /${command.name} in ${i.guild?.name} but was on cooldown.`
+      );
       return;
     }
 
@@ -66,7 +76,11 @@ export default async function execute(client: SoapClient, interaction: Interacti
       await putOnCooldown(i.user.id, command.id);
     }
 
-    log("INFO", global.shardId, `${i.user.tag} issued command /${command.name} in ${i.guild?.name}.`);
+    log(
+      "INFO",
+      global.shardId,
+      `${i.user.tag} issued command /${command.name} in ${i.guild?.name}.`
+    );
   }
 
   updateTag(interaction.user.id, interaction.user.tag);

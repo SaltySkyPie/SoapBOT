@@ -12,10 +12,7 @@ export default class Balance extends Command {
     let user = interaction.options.getMember("user") as GuildMember;
     if (!user) user = interaction.member as GuildMember;
 
-    const [points, bank] = await Promise.all([
-      getPoints(user.id),
-      getBank(user.id),
-    ]);
+    const [points, bank] = await Promise.all([getPoints(user.id), getBank(user.id)]);
 
     const embed = this.createEmbed()
       .setTitle(`${user.displayName}'s balance`)
@@ -31,8 +28,6 @@ export default class Balance extends Command {
     return new SlashCommandBuilder()
       .setName(this.name)
       .setDescription(this.description)
-      .addUserOption((option) =>
-        option.setName("user").setDescription("User").setRequired(false)
-      );
+      .addUserOption((option) => option.setName("user").setDescription("User").setRequired(false));
   }
 }

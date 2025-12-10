@@ -2,10 +2,7 @@ import { Snowflake } from "discord.js";
 import prisma from "../lib/prisma.js";
 import { getMysqlDateTime, getTimeRemaining, formatCooldownRemaining } from "../utils/time.js";
 
-export default async function checkCooldown(
-  userId: Snowflake,
-  commandId: number | bigint
-) {
+export default async function checkCooldown(userId: Snowflake, commandId: number | bigint) {
   const user = await prisma.users.findUnique({
     where: { user_id: userId },
     select: { id: true },
@@ -20,7 +17,7 @@ export default async function checkCooldown(
       user_id: user.id,
       expiration: { gt: now },
     },
-    orderBy: { id: 'desc' },
+    orderBy: { id: "desc" },
   });
 
   if (cooldown && cooldown.expiration) {
