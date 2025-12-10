@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node out/index.js",
-    "dev": "tsx watch src/bot.ts"
+    "dev": "tsx watch src/bot.ts",
+    "deploy": "npm run build && npx prisma generate && npx prisma migrate deploy && npm run start"
   },
   "author": "SaltySkyPie#3737",
   "license": "ISC",
