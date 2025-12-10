@@ -1,6 +1,6 @@
 import { Snowflake } from "discord.js";
 import prisma from "../lib/prisma.js";
-import { getFutureTimestamp } from "../utils/time.js";
+import dayjs from "dayjs";
 
 export default async function putOnCooldown(userId: Snowflake, commandId: number | bigint) {
   const [command, user] = await Promise.all([
@@ -16,11 +16,26 @@ export default async function putOnCooldown(userId: Snowflake, commandId: number
 
   if (!command || !user) return;
 
-  await prisma.command_cooldowns.create({
-    data: {
+  const now = new Date();
+
+  // Check if an active cooldown already exists
+  const existingCooldown = await prisma.command_cooldowns.findFirst({
+    where: {
       user_id: user.id,
       command_id: BigInt(commandId),
-      expiration: getFutureTimestamp(Number(command.cooldown) * 1000),
+      expiration: { gt: now },
     },
   });
+
+  // Only create a new cooldown if one doesn't already exist
+  if (!existingCooldown) {
+    const expiration = dayjs().add(Number(command.cooldown), "second").toDate();
+    await prisma.command_cooldowns.create({
+      data: {
+        user_id: user.id,
+        command_id: BigInt(commandId),
+        expiration,
+      },
+    });
+  }
 }

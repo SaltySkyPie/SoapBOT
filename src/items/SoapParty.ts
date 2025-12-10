@@ -7,6 +7,7 @@ import {
   Message,
   ComponentType,
   EmbedBuilder,
+  MessageFlags,
 } from "discord.js";
 import { Item, SoapClient, SOAP_COLOR } from "../core/index.js";
 import getPoints from "../functions/getPoints.js";
@@ -44,11 +45,12 @@ export default class SoapParty extends Item {
         .setStyle(ButtonStyle.Success)
     );
 
-    const reply = (await interaction.reply({
+    const response = await interaction.reply({
       embeds: [partyEmbed],
       components: [row],
-      fetchReply: true,
-    })) as Message;
+      withResponse: true,
+    });
+    const reply = response.resource!.message! as Message;
 
     const collector = interaction.channel!.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -62,7 +64,7 @@ export default class SoapParty extends Item {
       if (!i.customId.includes(interaction.id)) return;
 
       if (joiners.includes(i.user.id)) {
-        return i.reply({ content: `You already joined the party!`, ephemeral: true }).catch();
+        return i.reply({ content: `You already joined the party!`, flags: MessageFlags.Ephemeral }).catch();
       }
 
       joiners.push(i.user.id);

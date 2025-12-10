@@ -1,4 +1,4 @@
-import { Interaction, EmbedBuilder } from "discord.js";
+import { Interaction, EmbedBuilder, MessageFlags } from "discord.js";
 import { Command, SoapClient, SOAP_COLOR } from "../core/index.js";
 import checkBan from "../functions/checkBan.js";
 import checkCooldown from "../functions/checkCooldown.js";
@@ -40,7 +40,7 @@ export default async function execute(client: SoapClient, interaction: Interacti
             .setTitle("You are banned!")
             .setDescription(`for **${ban}**`),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       log(
         "INFO",
@@ -60,7 +60,7 @@ export default async function execute(client: SoapClient, interaction: Interacti
               `Please wait **${cooldown}** before running **/${command.name}** again.`
             ),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       log(
         "INFO",

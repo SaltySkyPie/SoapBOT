@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder, Message, ComponentType } from "discord.js";
+import { CommandInteraction, EmbedBuilder, Message, ComponentType, MessageFlags } from "discord.js";
 import { createNavigationButtons } from "./buttons.js";
 
 export interface PaginationOptions<T> {
@@ -29,11 +29,12 @@ export async function createPaginatedEmbed<T>(options: PaginationOptions<T>): Pr
   const embed = buildEmbed(items, currentPage, maxPage);
   const row = createNavigationButtons(customIdPrefix, interaction.id);
 
-  const reply = (await interaction.reply({
+  const response = await interaction.reply({
     embeds: [embed],
     components: [row],
-    fetchReply: true,
-  })) as Message;
+    withResponse: true,
+  });
+  const reply = response.resource!.message! as Message;
 
   const collector = interaction.channel!.createMessageComponentCollector({
     componentType: ComponentType.Button,
@@ -44,7 +45,7 @@ export async function createPaginatedEmbed<T>(options: PaginationOptions<T>): Pr
     if (!buttonInteraction.customId.includes(interaction.id)) return;
 
     if (buttonInteraction.user.id !== interaction.user.id) {
-      await buttonInteraction.reply({ content: "These buttons aren't for you!", ephemeral: true });
+      await buttonInteraction.reply({ content: "These buttons aren't for you!", flags: MessageFlags.Ephemeral });
       return;
     }
 

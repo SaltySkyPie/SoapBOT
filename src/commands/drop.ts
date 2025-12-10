@@ -6,6 +6,7 @@ import {
   ButtonStyle,
   Message,
   ComponentType,
+  MessageFlags,
 } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { Command, SoapClient } from "../core/index.js";
@@ -99,11 +100,12 @@ export default class Drop extends Command {
     dmUser(target, { embeds: [dm] });
     await setSoapStatus(target.id, 1);
 
-    const reply = (await interaction.reply({
+    const response = await interaction.reply({
       embeds: [dropEmbed],
       components: [row],
-      fetchReply: true,
-    })) as Message;
+      withResponse: true,
+    });
+    const reply = response.resource!.message! as Message;
 
     const collector = interaction.channel!.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -115,7 +117,7 @@ export default class Drop extends Command {
     collector.on("collect", async (i) => {
       if (i.customId !== "soap_pickup" + interaction.id) return;
       if (i.user.id !== target.id) {
-        i.reply({ content: `This button is not for you. Dummy!`, ephemeral: true });
+        i.reply({ content: `This button is not for you. Dummy!`, flags: MessageFlags.Ephemeral });
         return;
       }
 

@@ -46,10 +46,11 @@ export default class Coinflip extends Command {
       .setAuthor({ name: `${member.displayName}'s coin flip`, iconURL: avatar })
       .setDescription(`is betting 🧼**${decoded.toLocaleString()}** on ${side}.`);
 
-    const reply = (await interaction.reply({
+    const response = await interaction.reply({
       embeds: [flipping],
-      fetchReply: true,
-    })) as Message;
+      withResponse: true,
+    });
+    const reply = response.resource!.message! as Message;
 
     const result_image = success
       ? "https://cdn.saltyskypie.com/soapbot/gifs/flip-success.gif"

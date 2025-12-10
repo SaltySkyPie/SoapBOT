@@ -1,6 +1,10 @@
 import { Snowflake } from "discord.js";
 import prisma from "../lib/prisma.js";
-import { getMysqlDateTime, getTimeRemaining, formatCooldownRemaining } from "../utils/time.js";
+import { formatCooldownRemaining } from "../utils/time.js";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration.js";
+
+dayjs.extend(duration);
 
 export default async function checkCooldown(userId: Snowflake, commandId: number | bigint) {
   const user = await prisma.users.findUnique({
@@ -10,7 +14,7 @@ export default async function checkCooldown(userId: Snowflake, commandId: number
 
   if (!user) return false;
 
-  const now = new Date(getMysqlDateTime());
+  const now = new Date();
   const cooldown = await prisma.command_cooldowns.findFirst({
     where: {
       command_id: BigInt(commandId),
@@ -21,8 +25,19 @@ export default async function checkCooldown(userId: Snowflake, commandId: number
   });
 
   if (cooldown && cooldown.expiration) {
-    const remaining = getTimeRemaining(cooldown.expiration, new Date());
-    return formatCooldownRemaining(remaining);
+    // Calculate remaining time (expiration - now)
+    const remainingMs = dayjs(cooldown.expiration).diff(dayjs());
+
+    if (remainingMs <= 0) return false;
+
+    const d = dayjs.duration(remainingMs);
+    return formatCooldownRemaining({
+      total: remainingMs,
+      days: Math.floor(d.asDays()),
+      hours: d.hours(),
+      minutes: d.minutes(),
+      seconds: d.seconds(),
+    });
   } else {
     return false;
   }
