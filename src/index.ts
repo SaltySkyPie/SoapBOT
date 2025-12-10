@@ -10,6 +10,11 @@
 import "dotenv/config";
 import log from "./functions/log.js";
 import { ShardingManager } from "discord.js";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 process
   .on("unhandledRejection", (e) => {
@@ -21,7 +26,7 @@ process
 
 log("INFO", -1, "Starting Soap BOT...");
 
-const manager = new ShardingManager("bot.js", {
+const manager = new ShardingManager(path.join(__dirname, "bot.js"), {
   token: process.env.TOKEN,
   totalShards: "auto",
   respawn: true,
