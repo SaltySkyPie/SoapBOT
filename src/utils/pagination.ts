@@ -45,7 +45,10 @@ export async function createPaginatedEmbed<T>(options: PaginationOptions<T>): Pr
     if (!buttonInteraction.customId.includes(interaction.id)) return;
 
     if (buttonInteraction.user.id !== interaction.user.id) {
-      await buttonInteraction.reply({ content: "These buttons aren't for you!", flags: MessageFlags.Ephemeral });
+      await buttonInteraction.reply({
+        content: "These buttons aren't for you!",
+        flags: MessageFlags.Ephemeral,
+      });
       return;
     }
 

@@ -64,7 +64,9 @@ export default class SoapParty extends Item {
       if (!i.customId.includes(interaction.id)) return;
 
       if (joiners.includes(i.user.id)) {
-        return i.reply({ content: `You already joined the party!`, flags: MessageFlags.Ephemeral }).catch();
+        return i
+          .reply({ content: `You already joined the party!`, flags: MessageFlags.Ephemeral })
+          .catch();
       }
 
       joiners.push(i.user.id);

@@ -11,4 +11,7 @@ if [ -n "$STAGED_FILES" ]; then
 
   # Run prettier --write on staged files
   echo "$STAGED_FILES" | xargs npx prettier --write
+
+  # Re-stage the modified files
+  echo "$STAGED_FILES" | xargs git add
 fi
