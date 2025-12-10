@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint",
     "fix": "npm run lint:fix && npm run format",
-    "deploy": "npm run build && npx prisma generate && npx prisma migrate deploy && npm run start",
+    "deploy": "npx prisma generate && npm run build && npx prisma migrate deploy && npm run start",
     "prepare": "husky"
   },
   "author": "SaltySkyPie#3737",
